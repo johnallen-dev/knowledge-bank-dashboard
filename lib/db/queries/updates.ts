@@ -101,6 +101,57 @@ export async function getExamById(id: number): Promise<Exam | null> {
   return rows[0] ? toExam(rows[0] as Record<string, unknown>) : null
 }
 
+export async function getUpdatesAnalytics() {
+  const db = await getDb()
+
+  // Per agent
+  const { rows: agentRows } = await db.execute(`
+    SELECT
+      ea.examinee_name,
+      COUNT(*)                                      AS total_attempts,
+      ROUND(AVG(CAST(ea.score AS REAL) / ea.max_score * 100), 1) AS avg_pct,
+      MAX(CAST(ea.score AS REAL) / ea.max_score * 100)           AS best_pct,
+      SUM(CASE WHEN CAST(ea.score AS REAL) / ea.max_score >= 0.7 THEN 1 ELSE 0 END) AS passed,
+      MAX(ea.submitted_at) AS last_attempt
+    FROM exam_attempts ea
+    GROUP BY ea.examinee_name
+    ORDER BY avg_pct DESC
+  `)
+
+  // Per exam link
+  const { rows: linkRows } = await db.execute(`
+    SELECT
+      e.share_token,
+      e.question_count,
+      ud.title AS document_title,
+      e.created_at,
+      COUNT(ea.id)                                                AS total_attempts,
+      ROUND(AVG(CAST(ea.score AS REAL) / ea.max_score * 100), 1) AS avg_pct,
+      SUM(CASE WHEN CAST(ea.score AS REAL) / ea.max_score >= 0.7 THEN 1 ELSE 0 END) AS passed
+    FROM exams e
+    JOIN update_documents ud ON e.document_id = ud.id
+    LEFT JOIN exam_attempts ea ON ea.exam_id = e.id
+    GROUP BY e.id
+    ORDER BY e.created_at DESC
+  `)
+
+  // Summary totals
+  const { rows: totals } = await db.execute(`
+    SELECT
+      COUNT(*)                                                    AS total_attempts,
+      COUNT(DISTINCT examinee_name)                               AS total_examinees,
+      ROUND(AVG(CAST(score AS REAL) / max_score * 100), 1)       AS overall_avg,
+      SUM(CASE WHEN CAST(score AS REAL) / max_score >= 0.7 THEN 1 ELSE 0 END) AS total_passed
+    FROM exam_attempts
+  `)
+
+  return {
+    summary: totals[0] as Record<string, unknown>,
+    byAgent: agentRows as Record<string, unknown>[],
+    byLink: linkRows as Record<string, unknown>[],
+  }
+}
+
 export async function listAllExams(): Promise<(Exam & { document_title: string; attempt_count: number })[]> {
   const db = await getDb()
   const { rows } = await db.execute(`

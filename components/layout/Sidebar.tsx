@@ -18,6 +18,7 @@ const NAV: { href: string; label: string; icon: React.ElementType; section: NavS
   { href: '/categories',             label: 'Categories',         icon: Tag,           section: 'knowledge', exact: true },
   { href: '/updates',                label: 'Updates',            icon: FileText,      section: 'updates', exact: true },
   { href: '/updates/results',        label: 'Exam Results',       icon: ClipboardList, section: 'updates', exact: true },
+  { href: '/updates/analytics',      label: 'Analytics',          icon: BarChart3,     section: 'updates', exact: true },
   { href: '/updates/links',          label: 'Exam Links',         icon: Link2,         section: 'updates', exact: true },
   { href: '/analytics',              label: 'Analytics',          icon: BarChart3,     section: 'system', exact: true },
   { href: '/settings',               label: 'Settings',           icon: Settings,      section: 'system', exact: true },
