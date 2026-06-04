@@ -11,7 +11,8 @@ import { ClipboardList } from 'lucide-react'
 
 type Stage = 'loading' | 'error' | 'intro' | 'taking' | 'signing' | 'done'
 
-interface ScoreData { score: number; maxScore: number; durationSeconds: number }
+interface BreakdownItem { questionId: string; correct: boolean; given: string; expected: string }
+interface ScoreData { score: number; maxScore: number; durationSeconds: number; breakdown: BreakdownItem[] }
 
 export default function ExamPage() {
   const { id: token } = useParams<{ id: string }>()
@@ -76,7 +77,7 @@ export default function ExamPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Submission failed')
-      setScoreData({ score: data.score, maxScore: data.maxScore, durationSeconds })
+      setScoreData({ score: data.score, maxScore: data.maxScore, durationSeconds, breakdown: data.breakdown ?? [] })
       setStage('done')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Submission failed. Please try again.')
@@ -114,6 +115,8 @@ export default function ExamPage() {
         examineeName={examineeName}
         examDate={examDate}
         durationSeconds={scoreData.durationSeconds}
+        questions={questions}
+        breakdown={scoreData.breakdown}
       />
     )
   }
