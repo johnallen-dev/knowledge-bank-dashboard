@@ -2,8 +2,8 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  BookOpen, MessageSquare, Database, PlusCircle, Tag,
-  BarChart3, Settings, Home, Upload, FileText, ClipboardList,
+  MessageSquare, Database, PlusCircle, Tag,
+  BarChart3, Settings, Home, Upload, FileText, ClipboardList, Leaf,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -31,26 +31,34 @@ const SECTION_LABELS: Record<NavSection, string> = {
 
 export function Sidebar() {
   const pathname = usePathname()
-
   const sections: NavSection[] = ['sections', 'knowledge', 'updates', 'system']
 
   return (
-    <aside className="w-64 shrink-0 border-r bg-card flex flex-col h-full">
-      {/* Logo */}
-      <div className="px-6 py-5 border-b">
-        <div className="flex items-center gap-2">
-          <BookOpen className="h-6 w-6 text-primary" />
-          <span className="font-semibold text-lg">Knowledge Bank</span>
-        </div>
+    <aside className="w-64 shrink-0 flex flex-col h-full" style={{ background: 'linear-gradient(180deg, #052e16 0%, #14532d 100%)' }}>
+
+      {/* Greenkey Logo */}
+      <div className="px-5 py-5 border-b border-green-800/60">
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="h-9 w-9 rounded-xl flex items-center justify-center border border-green-400/25 shadow-lg"
+            style={{ background: 'rgba(34,197,94,0.15)' }}>
+            <Leaf className="h-4.5 w-4.5 text-green-400" style={{ width: 18, height: 18 }} />
+          </div>
+          <div>
+            <p className="font-bold text-white text-base leading-tight">
+              Green<span className="text-green-400">key</span>
+            </p>
+            <p className="text-green-400/50 text-[9px] uppercase tracking-[0.25em] leading-none mt-0.5">Knowledge Hub</p>
+          </div>
+        </Link>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-4">
+      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-5">
         {sections.map((section, si) => {
           const items = NAV.filter(n => n.section === section)
           return (
             <div key={section} className={si > 0 ? 'pt-1' : undefined}>
-              <p className="px-3 pb-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <p className="px-3 pb-1.5 text-[10px] font-semibold text-green-400/40 uppercase tracking-[0.2em]">
                 {SECTION_LABELS[section]}
               </p>
               <div className="space-y-0.5">
@@ -65,15 +73,15 @@ export function Sidebar() {
       </nav>
 
       {/* Section indicator */}
-      <div className="border-t px-6 py-4">
-        <div className="flex gap-2">
+      <div className="border-t border-green-800/60 px-4 py-4">
+        <div className="flex gap-1.5">
           <Link
             href="/guest"
             className={cn(
-              'flex-1 text-center text-xs py-1.5 rounded-md font-medium transition-colors',
+              'flex-1 text-center text-xs py-1.5 rounded-lg font-medium transition-all',
               pathname === '/guest'
-                ? 'bg-blue-100 text-blue-700'
-                : 'text-muted-foreground hover:bg-muted'
+                ? 'bg-green-500/25 text-green-300 border border-green-400/30'
+                : 'text-green-400/50 hover:bg-green-800/40 hover:text-green-300'
             )}
           >
             Guest
@@ -81,10 +89,10 @@ export function Sidebar() {
           <Link
             href="/user"
             className={cn(
-              'flex-1 text-center text-xs py-1.5 rounded-md font-medium transition-colors',
+              'flex-1 text-center text-xs py-1.5 rounded-lg font-medium transition-all',
               pathname === '/user'
-                ? 'bg-indigo-100 text-indigo-700'
-                : 'text-muted-foreground hover:bg-muted'
+                ? 'bg-green-500/25 text-green-300 border border-green-400/30'
+                : 'text-green-400/50 hover:bg-green-800/40 hover:text-green-300'
             )}
           >
             Staff
@@ -92,10 +100,10 @@ export function Sidebar() {
           <Link
             href="/updates"
             className={cn(
-              'flex-1 text-center text-xs py-1.5 rounded-md font-medium transition-colors',
+              'flex-1 text-center text-xs py-1.5 rounded-lg font-medium transition-all',
               pathname.startsWith('/updates')
-                ? 'bg-violet-100 text-violet-700'
-                : 'text-muted-foreground hover:bg-muted'
+                ? 'bg-green-500/25 text-green-300 border border-green-400/30'
+                : 'text-green-400/50 hover:bg-green-800/40 hover:text-green-300'
             )}
           >
             Updates
@@ -117,10 +125,10 @@ function NavItem({
     <Link
       href={item.href}
       className={cn(
-        'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
+        'flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all',
         active
-          ? 'bg-primary/10 text-primary font-medium'
-          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+          ? 'bg-green-500/20 text-green-300 font-medium border border-green-400/20'
+          : 'text-green-300/55 hover:bg-green-800/40 hover:text-green-200'
       )}
     >
       <item.icon className="h-4 w-4 shrink-0" />

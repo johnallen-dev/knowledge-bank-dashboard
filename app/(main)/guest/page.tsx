@@ -1,21 +1,25 @@
 import { QuestionInput } from '@/components/ask/QuestionInput'
-import { Hotel } from 'lucide-react'
+import { Headphones, Leaf } from 'lucide-react'
 
 const PROPERTY_NAME = process.env.NEXT_PUBLIC_PROPERTY_NAME || 'Knowledge Bank'
 
 export default function GuestPage() {
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div className="text-center space-y-3 pb-2">
-        <div className="flex items-center justify-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-            <Hotel className="h-5 w-5 text-blue-600" />
+        <div className="flex items-center justify-center mb-1">
+          <div className="h-14 w-14 rounded-2xl flex items-center justify-center border border-green-200 shadow-sm"
+            style={{ background: 'linear-gradient(135deg, #dcfce7, #bbf7d0)' }}>
+            <Headphones className="h-7 w-7 text-green-700" />
           </div>
-          <h1 className="text-2xl font-semibold">Guest Assistance</h1>
         </div>
-        <p className="text-muted-foreground max-w-md mx-auto">
-          Welcome to {PROPERTY_NAME}. Ask us anything about your stay — we&apos;re here to help.
+        <div className="flex items-center justify-center gap-2">
+          <Leaf className="h-4 w-4 text-green-500" />
+          <h1 className="text-2xl font-bold text-green-900">Guest Assistance</h1>
+          <Leaf className="h-4 w-4 text-green-500" />
+        </div>
+        <p className="text-muted-foreground max-w-md mx-auto text-sm">
+          Welcome to <strong className="text-green-700">{PROPERTY_NAME}</strong>. Ask us anything about your stay — we&apos;re here to help.
         </p>
       </div>
 
