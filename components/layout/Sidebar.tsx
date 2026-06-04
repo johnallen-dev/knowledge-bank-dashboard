@@ -78,7 +78,7 @@ export function Sidebar() {
 
       {/* Section indicator — only shown on Knowledge Bank pages */}
       <div className="border-t border-green-800/60 px-4 py-4">
-        {!pathname.startsWith('/updates') ? (
+        {!pathname.startsWith('/updates') && (
           <div className="flex gap-1.5">
             <Link
               href="/guest"
@@ -106,6 +106,7 @@ export function Sidebar() {
         )}
       </div>
     </aside>
+
   )
 }
 
