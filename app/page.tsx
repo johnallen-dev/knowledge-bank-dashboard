@@ -110,9 +110,14 @@ export default function Home() {
           </Link>
         </div>
 
-        <p className="mt-14 text-white/30 text-xs tracking-wide">
-          © {new Date().getFullYear()} Greenkey · Knowledge Management System
-        </p>
+        <div className="mt-14 text-center space-y-1">
+          <p className="text-white/30 text-xs tracking-wide">
+            © {new Date().getFullYear()} Greenkey · Knowledge Management System
+          </p>
+          <p className="text-white/20 text-xs">
+            Created by <span className="text-white/40 font-medium">John Allen Astrera</span>
+          </p>
+        </div>
       </div>
     </div>
   )
