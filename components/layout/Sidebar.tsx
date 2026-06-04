@@ -47,7 +47,7 @@ export function Sidebar() {
             <p className="font-bold text-white text-base leading-tight">
               Green<span className="text-green-400">key</span>
             </p>
-            <p className="text-green-400/50 text-[9px] uppercase tracking-[0.25em] leading-none mt-0.5">Knowledge Hub</p>
+            <p className="text-white/50 text-[9px] uppercase tracking-[0.25em] leading-none mt-0.5">Knowledge Hub</p>
           </div>
         </Link>
       </div>
@@ -58,7 +58,7 @@ export function Sidebar() {
           const items = NAV.filter(n => n.section === section)
           return (
             <div key={section} className={si > 0 ? 'pt-1' : undefined}>
-              <p className="px-3 pb-1.5 text-[10px] font-semibold text-green-400/40 uppercase tracking-[0.2em]">
+              <p className="px-3 pb-1.5 text-[10px] font-semibold text-white/40 uppercase tracking-[0.2em]">
                 {SECTION_LABELS[section]}
               </p>
               <div className="space-y-0.5">
@@ -80,8 +80,8 @@ export function Sidebar() {
             className={cn(
               'flex-1 text-center text-xs py-1.5 rounded-lg font-medium transition-all',
               pathname === '/guest'
-                ? 'bg-green-500/25 text-green-300 border border-green-400/30'
-                : 'text-green-400/50 hover:bg-green-800/40 hover:text-green-300'
+                ? 'bg-green-500/25 text-white border border-green-400/30'
+                : 'text-white/50 hover:bg-green-800/40 hover:text-white'
             )}
           >
             Guest
@@ -91,8 +91,8 @@ export function Sidebar() {
             className={cn(
               'flex-1 text-center text-xs py-1.5 rounded-lg font-medium transition-all',
               pathname === '/user'
-                ? 'bg-green-500/25 text-green-300 border border-green-400/30'
-                : 'text-green-400/50 hover:bg-green-800/40 hover:text-green-300'
+                ? 'bg-green-500/25 text-white border border-green-400/30'
+                : 'text-white/50 hover:bg-green-800/40 hover:text-white'
             )}
           >
             Staff
@@ -102,8 +102,8 @@ export function Sidebar() {
             className={cn(
               'flex-1 text-center text-xs py-1.5 rounded-lg font-medium transition-all',
               pathname.startsWith('/updates')
-                ? 'bg-green-500/25 text-green-300 border border-green-400/30'
-                : 'text-green-400/50 hover:bg-green-800/40 hover:text-green-300'
+                ? 'bg-green-500/25 text-white border border-green-400/30'
+                : 'text-white/50 hover:bg-green-800/40 hover:text-white'
             )}
           >
             Updates
@@ -127,8 +127,8 @@ function NavItem({
       className={cn(
         'flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all',
         active
-          ? 'bg-green-500/20 text-green-300 font-medium border border-green-400/20'
-          : 'text-green-300/55 hover:bg-green-800/40 hover:text-green-200'
+          ? 'bg-green-500/20 text-white font-medium border border-green-400/20'
+          : 'text-white/60 hover:bg-green-800/40 hover:text-white'
       )}
     >
       <item.icon className="h-4 w-4 shrink-0" />
