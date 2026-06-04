@@ -241,6 +241,11 @@ export async function getAttempt(id: number): Promise<ExamAttempt | null> {
   return rows[0] ? toAttempt(rows[0] as Record<string, unknown>) : null
 }
 
+export async function updateDocumentTitle(id: number, title: string): Promise<void> {
+  const db = await getDb()
+  await db.execute({ sql: 'UPDATE update_documents SET title = ? WHERE id = ?', args: [title, id] })
+}
+
 export async function deleteAttempt(id: number): Promise<void> {
   const db = await getDb()
   await db.execute({ sql: 'DELETE FROM exam_attempts WHERE id = ?', args: [id] })

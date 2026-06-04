@@ -1,6 +1,8 @@
 'use client'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -10,16 +12,21 @@ interface Props {
 }
 
 export function ExamGenerator({ documentId, onGenerated }: Props) {
+  const [name, setName] = useState('')
   const [count, setCount] = useState<10 | 20>(10)
   const [generating, setGenerating] = useState(false)
 
   async function handleGenerate() {
+    if (!name.trim()) {
+      toast.error('Please enter an Update Name before generating.')
+      return
+    }
     setGenerating(true)
     try {
       const res = await fetch('/api/updates/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documentId, questionCount: count }),
+        body: JSON.stringify({ documentId, questionCount: count, updateName: name.trim() }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Generation failed')
@@ -34,6 +41,22 @@ export function ExamGenerator({ documentId, onGenerated }: Props) {
 
   return (
     <div className="space-y-5">
+
+      {/* Update name */}
+      <div className="space-y-2">
+        <Label htmlFor="update-name">Update Name <span className="text-destructive">*</span></Label>
+        <Input
+          id="update-name"
+          placeholder="e.g. ASKA Holt Guest Journey – June 2026"
+          value={name}
+          onChange={e => setName(e.target.value)}
+        />
+        <p className="text-xs text-muted-foreground">
+          This name identifies the exam in Analytics, Results, and Exam Links reports.
+        </p>
+      </div>
+
+      {/* Question count */}
       <div>
         <p className="text-sm font-medium mb-3">Number of exam questions</p>
         <div className="flex gap-3">
@@ -62,7 +85,7 @@ export function ExamGenerator({ documentId, onGenerated }: Props) {
         <p>• All questions are based on the uploaded document content</p>
       </div>
 
-      <Button onClick={handleGenerate} disabled={generating} className="w-full">
+      <Button onClick={handleGenerate} disabled={generating || !name.trim()} className="w-full">
         <Sparkles className="h-4 w-4" />
         {generating ? 'Generating exam with AI…' : `Generate ${count}-Question Exam`}
       </Button>

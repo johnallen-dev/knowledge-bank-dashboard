@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAnthropicClient } from '@/lib/ai/client'
 import { buildExamPrompt } from '@/lib/updates/examPrompt'
-import { getDocument, createExam, getExamById } from '@/lib/db/queries/updates'
+import { getDocument, createExam, getExamById, updateDocumentTitle } from '@/lib/db/queries/updates'
 import type { ExamQuestion } from '@/lib/updates/types'
 
 export async function POST(req: NextRequest) {
@@ -9,6 +9,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const documentId = Number(body.documentId)
     const questionCount = Number(body.questionCount) as 10 | 20
+    const updateName = String(body.updateName ?? '').trim()
 
     if (!documentId || ![10, 20].includes(questionCount)) {
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
@@ -40,6 +41,11 @@ export async function POST(req: NextRequest) {
 
     if (!Array.isArray(questions) || questions.length === 0) {
       throw new Error('No questions returned from Claude')
+    }
+
+    // Save the custom update name as the document title
+    if (updateName) {
+      await updateDocumentTitle(documentId, updateName)
     }
 
     const examId = await createExam({
