@@ -2,7 +2,15 @@
 import { useState, useEffect } from 'react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { BarChart3, User, Link2, Trophy, ClipboardList, TrendingUp, CheckCircle } from 'lucide-react'
+import { BarChart3, User, Link2, Trophy, ClipboardList, TrendingUp, CheckCircle, Clock } from 'lucide-react'
+
+function formatDuration(seconds: number): string {
+  if (!seconds) return '—'
+  const m = Math.floor(seconds / 60)
+  const s = seconds % 60
+  if (m === 0) return `${s}s`
+  return `${m}m ${s}s`
+}
 import { toast } from 'sonner'
 
 export const dynamic = 'force-dynamic'
@@ -21,6 +29,7 @@ interface AgentRow {
   best_pct: number
   passed: number
   last_attempt: string
+  avg_duration_seconds: number
 }
 
 interface LinkRow {
@@ -31,6 +40,7 @@ interface LinkRow {
   total_attempts: number
   avg_pct: number
   passed: number
+  avg_duration_seconds: number
 }
 
 function ScoreBadge({ pct }: { pct: number }) {
@@ -117,7 +127,7 @@ export default function UpdatesAnalyticsPage() {
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 border-b">
                   <tr>
-                    {['#', 'Agent Name', 'Exams Taken', 'Avg Score', 'Best Score', 'Passed', 'Last Attempt'].map(h => (
+                    {['#', 'Agent Name', 'Exams Taken', 'Avg Score', 'Best Score', 'Passed', 'Avg Duration', 'Last Attempt'].map(h => (
                       <th key={h} className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">{h}</th>
                     ))}
                   </tr>
@@ -135,6 +145,11 @@ export default function UpdatesAnalyticsPage() {
                       <td className="px-4 py-3">
                         <span className="text-green-700 font-medium">{row.passed}</span>
                         <span className="text-muted-foreground">/{row.total_attempts}</span>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />{formatDuration(row.avg_duration_seconds)}
+                        </span>
                       </td>
                       <td className="px-4 py-3 text-xs text-muted-foreground">
                         {row.last_attempt ? new Date(row.last_attempt).toLocaleDateString() : '—'}
@@ -156,7 +171,7 @@ export default function UpdatesAnalyticsPage() {
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 border-b">
                   <tr>
-                    {['Document', 'Questions', 'Attempts', 'Avg Score', 'Passed', 'Pass Rate', 'Created', 'Link'].map(h => (
+                    {['Document', 'Questions', 'Attempts', 'Avg Score', 'Passed', 'Pass Rate', 'Avg Duration', 'Created', 'Link'].map(h => (
                       <th key={h} className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">{h}</th>
                     ))}
                   </tr>
@@ -184,6 +199,11 @@ export default function UpdatesAnalyticsPage() {
                               <span className="text-xs text-muted-foreground">{rate}%</span>
                             </div>
                           ) : <span className="text-muted-foreground text-xs">—</span>}
+                        </td>
+                        <td className="px-4 py-3 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />{formatDuration(row.avg_duration_seconds)}
+                          </span>
                         </td>
                         <td className="px-4 py-3 text-xs text-muted-foreground">
                           {new Date(row.created_at).toLocaleDateString()}

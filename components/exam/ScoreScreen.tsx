@@ -1,14 +1,23 @@
 'use client'
-import { CheckCircle, XCircle } from 'lucide-react'
+import { CheckCircle, XCircle, Clock } from 'lucide-react'
+
+function formatDuration(seconds: number): string {
+  if (!seconds) return '—'
+  const m = Math.floor(seconds / 60)
+  const s = seconds % 60
+  if (m === 0) return `${s}s`
+  return `${m}m ${s}s`
+}
 
 interface Props {
   score: number
   maxScore: number
   examineeName: string
   examDate: string
+  durationSeconds: number
 }
 
-export function ScoreScreen({ score, maxScore, examineeName, examDate }: Props) {
+export function ScoreScreen({ score, maxScore, examineeName, examDate, durationSeconds }: Props) {
   const pct = Math.round((score / maxScore) * 100)
   const passed = pct >= 70
 
@@ -44,6 +53,12 @@ export function ScoreScreen({ score, maxScore, examineeName, examDate }: Props) 
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Correct answers</span>
             <span className="font-medium">{score} out of {maxScore}</span>
+          </div>
+          <div className="flex justify-between text-sm border-t pt-2 mt-1">
+            <span className="text-muted-foreground flex items-center gap-1">
+              <Clock className="h-3.5 w-3.5" /> Time taken
+            </span>
+            <span className="font-semibold text-primary">{formatDuration(durationSeconds)}</span>
           </div>
         </div>
 

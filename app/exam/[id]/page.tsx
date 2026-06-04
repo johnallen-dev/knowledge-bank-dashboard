@@ -11,7 +11,7 @@ import { ClipboardList } from 'lucide-react'
 
 type Stage = 'loading' | 'error' | 'intro' | 'taking' | 'signing' | 'done'
 
-interface ScoreData { score: number; maxScore: number }
+interface ScoreData { score: number; maxScore: number; durationSeconds: number }
 
 export default function ExamPage() {
   const { id: token } = useParams<{ id: string }>()
@@ -23,6 +23,7 @@ export default function ExamPage() {
   const [scoreData, setScoreData] = useState<ScoreData | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const sigRef = useRef<SignaturePadHandle>(null)
+  const startedAtRef = useRef<number | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -43,6 +44,7 @@ export default function ExamPage() {
   function handleStart(name: string, date: string) {
     setExamineeName(name)
     setExamDate(date)
+    startedAtRef.current = Date.now()
     setStage('taking')
   }
 
@@ -63,14 +65,18 @@ export default function ExamPage() {
     setSubmitting(true)
     try {
       const signatureB64 = sigRef.current.toDataURL()
+      const durationSeconds = startedAtRef.current
+        ? Math.round((Date.now() - startedAtRef.current) / 1000)
+        : 0
+
       const res = await fetch('/api/updates/attempts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, examineeName, examDate, answers, signatureB64 }),
+        body: JSON.stringify({ token, examineeName, examDate, answers, signatureB64, durationSeconds }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Submission failed')
-      setScoreData({ score: data.score, maxScore: data.maxScore })
+      setScoreData({ score: data.score, maxScore: data.maxScore, durationSeconds })
       setStage('done')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Submission failed. Please try again.')
@@ -101,7 +107,15 @@ export default function ExamPage() {
   if (stage === 'intro') return <IntroScreen questionCount={questions.length} onStart={handleStart} />
 
   if (stage === 'done' && scoreData) {
-    return <ScoreScreen score={scoreData.score} maxScore={scoreData.maxScore} examineeName={examineeName} examDate={examDate} />
+    return (
+      <ScoreScreen
+        score={scoreData.score}
+        maxScore={scoreData.maxScore}
+        examineeName={examineeName}
+        examDate={examDate}
+        durationSeconds={scoreData.durationSeconds}
+      />
+    )
   }
 
   if (stage === 'taking') {

@@ -10,12 +10,14 @@ export async function POST(req: NextRequest) {
       examDate,
       answers,
       signatureB64,
+      durationSeconds,
     } = await req.json() as {
       token: string
       examineeName: string
       examDate: string
       answers: Record<string, string>
       signatureB64: string
+      durationSeconds: number
     }
 
     if (!token || !examineeName?.trim() || !examDate || !answers || !signatureB64) {
@@ -35,6 +37,7 @@ export async function POST(req: NextRequest) {
       score,
       max_score: max,
       signature_b64: signatureB64,
+      duration_seconds: durationSeconds ?? 0,
     })
 
     return NextResponse.json({ attemptId, score, maxScore: max, breakdown })

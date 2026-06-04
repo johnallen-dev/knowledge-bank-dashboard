@@ -37,6 +37,7 @@ export interface ExamAttempt {
   score: number
   max_score: number
   signature_b64: string
+  duration_seconds: number
   submitted_at: string
   // joined fields
   document_title?: string

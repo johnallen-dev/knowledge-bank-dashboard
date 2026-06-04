@@ -140,6 +140,11 @@ export async function runMigrations(db: Client): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_attempts_name  ON exam_attempts(examinee_name);
   `)
 
+  // Add duration_seconds column if it doesn't exist yet (safe to run multiple times)
+  try {
+    await db.execute('ALTER TABLE exam_attempts ADD COLUMN duration_seconds INTEGER DEFAULT 0')
+  } catch { /* column already exists */ }
+
   await seedCategories(db)
 }
 

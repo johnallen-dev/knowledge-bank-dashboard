@@ -4,7 +4,15 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
-import { Search, Download, ExternalLink, Trash2, X, AlertTriangle } from 'lucide-react'
+import { Search, Download, ExternalLink, Trash2, X, AlertTriangle, Clock } from 'lucide-react'
+
+function formatDuration(seconds: number): string {
+  if (!seconds) return '—'
+  const m = Math.floor(seconds / 60)
+  const s = seconds % 60
+  if (m === 0) return `${s}s`
+  return `${m}m ${s}s`
+}
 import { toast } from 'sonner'
 import type { ExamAttempt } from '@/lib/updates/types'
 
@@ -167,7 +175,7 @@ export function ResultsTable() {
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 border-b">
                   <tr>
-                    {['Examinee', 'Date', 'Score', 'Document', 'Exam Link', 'Submitted', 'Signature', ''].map(h => (
+                    {['Examinee', 'Date', 'Score', 'Duration', 'Document', 'Exam Link', 'Submitted', 'Signature', ''].map(h => (
                       <th key={h} className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">{h}</th>
                     ))}
                   </tr>
@@ -181,6 +189,11 @@ export function ResultsTable() {
                         <Badge variant={a.score / a.max_score >= 0.7 ? 'default' : 'secondary'}>
                           {a.score}/{a.max_score}
                         </Badge>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Clock className="h-3 w-3" />{formatDuration(a.duration_seconds)}
+                        </span>
                       </td>
                       <td className="px-4 py-3 text-muted-foreground max-w-[140px] truncate">{a.document_title}</td>
                       <td className="px-4 py-3">

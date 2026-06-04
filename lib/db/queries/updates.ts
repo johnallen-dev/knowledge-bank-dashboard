@@ -39,6 +39,7 @@ function toAttempt(row: Record<string, unknown>): ExamAttempt {
     score: Number(row.score),
     max_score: Number(row.max_score),
     signature_b64: String(row.signature_b64 ?? ''),
+    duration_seconds: Number(row.duration_seconds ?? 0),
     submitted_at: String(row.submitted_at ?? ''),
     document_title: row.document_title ? String(row.document_title) : undefined,
     question_count: row.question_count ? Number(row.question_count) : undefined,
@@ -112,7 +113,8 @@ export async function getUpdatesAnalytics() {
       ROUND(AVG(CAST(ea.score AS REAL) / ea.max_score * 100), 1) AS avg_pct,
       MAX(CAST(ea.score AS REAL) / ea.max_score * 100)           AS best_pct,
       SUM(CASE WHEN CAST(ea.score AS REAL) / ea.max_score >= 0.7 THEN 1 ELSE 0 END) AS passed,
-      MAX(ea.submitted_at) AS last_attempt
+      MAX(ea.submitted_at) AS last_attempt,
+      ROUND(AVG(ea.duration_seconds)) AS avg_duration_seconds
     FROM exam_attempts ea
     GROUP BY ea.examinee_name
     ORDER BY avg_pct DESC
@@ -127,7 +129,8 @@ export async function getUpdatesAnalytics() {
       e.created_at,
       COUNT(ea.id)                                                AS total_attempts,
       ROUND(AVG(CAST(ea.score AS REAL) / ea.max_score * 100), 1) AS avg_pct,
-      SUM(CASE WHEN CAST(ea.score AS REAL) / ea.max_score >= 0.7 THEN 1 ELSE 0 END) AS passed
+      SUM(CASE WHEN CAST(ea.score AS REAL) / ea.max_score >= 0.7 THEN 1 ELSE 0 END) AS passed,
+      ROUND(AVG(ea.duration_seconds)) AS avg_duration_seconds
     FROM exams e
     JOIN update_documents ud ON e.document_id = ud.id
     LEFT JOIN exam_attempts ea ON ea.exam_id = e.id
@@ -189,15 +192,17 @@ export async function createAttempt(input: {
   score: number
   max_score: number
   signature_b64: string
+  duration_seconds: number
 }): Promise<number> {
   const db = await getDb()
   const result = await db.execute({
     sql: `INSERT INTO exam_attempts
-          (exam_id, examinee_name, exam_date, answers_json, score, max_score, signature_b64)
-          VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          (exam_id, examinee_name, exam_date, answers_json, score, max_score, signature_b64, duration_seconds)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       input.exam_id, input.examinee_name, input.exam_date,
       input.answers_json, input.score, input.max_score, input.signature_b64,
+      input.duration_seconds,
     ],
   })
   return Number(result.lastInsertRowid)
