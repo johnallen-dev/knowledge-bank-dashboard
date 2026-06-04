@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Search, Download } from 'lucide-react'
+import { Search, Download, ExternalLink } from 'lucide-react'
 import type { ExamAttempt } from '@/lib/updates/types'
 
 export function ResultsTable() {
@@ -85,7 +85,7 @@ export function ResultsTable() {
             <table className="w-full text-sm">
               <thead className="bg-muted/50 border-b">
                 <tr>
-                  {['Examinee', 'Date', 'Score', 'Document', 'Submitted', 'Signature', ''].map(h => (
+                  {['Examinee', 'Date', 'Score', 'Document', 'Exam Link', 'Submitted', 'Signature', ''].map(h => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">{h}</th>
                   ))}
                 </tr>
@@ -100,7 +100,20 @@ export function ResultsTable() {
                         {a.score}/{a.max_score}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground max-w-[200px] truncate">{a.document_title}</td>
+                    <td className="px-4 py-3 text-muted-foreground max-w-[160px] truncate">{a.document_title}</td>
+                    <td className="px-4 py-3">
+                      {a.share_token && (
+                        <a
+                          href={`/exam/${a.share_token}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-xs text-primary hover:underline"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          /exam/{a.share_token}
+                        </a>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-muted-foreground text-xs">{new Date(a.submitted_at).toLocaleString()}</td>
                     <td className="px-4 py-3">
                       {a.signature_b64 && (

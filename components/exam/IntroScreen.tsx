@@ -3,7 +3,22 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ClipboardList } from 'lucide-react'
+
+const EXAMINEES = [
+  'Sherilyn Susaya',
+  'Jenuel Advincula',
+  'John Carlo Susaya',
+  'Inah Astrera',
+  'Aaron Chico',
+  'Deniece Valeza',
+  'Elizabeth Antonio',
+  'Patrick Tuazon',
+  'Justine Marquez',
+  'Gia Saclausa',
+  'Cherie Josie Serafin',
+]
 
 interface Props {
   questionCount: number
@@ -18,8 +33,8 @@ export function IntroScreen({ questionCount, onStart }: Props) {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!name.trim() || !date) return
-    onStart(name.trim(), date)
+    if (!name || !date) return
+    onStart(name, date)
   }
 
   return (
@@ -45,14 +60,17 @@ export function IntroScreen({ questionCount, onStart }: Props) {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name *</Label>
-              <Input
-                id="name"
-                placeholder="Enter your full name"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                required
-              />
+              <Label>Full Name *</Label>
+              <Select value={name} onValueChange={setName}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select your name…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {EXAMINEES.map(n => (
+                    <SelectItem key={n} value={n}>{n}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="date">Date of Examination *</Label>
@@ -65,7 +83,7 @@ export function IntroScreen({ questionCount, onStart }: Props) {
                 required
               />
             </div>
-            <Button type="submit" className="w-full" disabled={!name.trim() || !date}>
+            <Button type="submit" className="w-full" disabled={!name || !date}>
               Start Exam
             </Button>
           </form>

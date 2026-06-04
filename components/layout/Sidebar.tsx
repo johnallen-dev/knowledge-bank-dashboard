@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   MessageSquare, Database, PlusCircle, Tag,
-  BarChart3, Settings, Home, Upload, FileText, ClipboardList, Key,
+  BarChart3, Settings, Home, Upload, FileText, ClipboardList, Key, Link2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -18,6 +18,7 @@ const NAV: { href: string; label: string; icon: React.ElementType; section: NavS
   { href: '/categories',             label: 'Categories',         icon: Tag,           section: 'knowledge', exact: true },
   { href: '/updates',                label: 'Updates',            icon: FileText,      section: 'updates', exact: true },
   { href: '/updates/results',        label: 'Exam Results',       icon: ClipboardList, section: 'updates', exact: true },
+  { href: '/updates/links',          label: 'Exam Links',         icon: Link2,         section: 'updates', exact: true },
   { href: '/analytics',              label: 'Analytics',          icon: BarChart3,     section: 'system', exact: true },
   { href: '/settings',               label: 'Settings',           icon: Settings,      section: 'system', exact: true },
 ]
@@ -99,6 +100,17 @@ export function Sidebar() {
               )}
             >
               Results
+            </Link>
+            <Link
+              href="/updates/links"
+              className={cn(
+                'flex-1 text-center text-xs py-1.5 rounded-lg font-medium transition-all',
+                pathname === '/updates/links'
+                  ? 'bg-green-500/25 text-white border border-green-400/30'
+                  : 'text-white/50 hover:bg-green-800/40 hover:text-white'
+              )}
+            >
+              Links
             </Link>
           </div>
         ) : (

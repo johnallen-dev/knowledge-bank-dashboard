@@ -101,6 +101,24 @@ export async function getExamById(id: number): Promise<Exam | null> {
   return rows[0] ? toExam(rows[0] as Record<string, unknown>) : null
 }
 
+export async function listAllExams(): Promise<(Exam & { document_title: string; attempt_count: number })[]> {
+  const db = await getDb()
+  const { rows } = await db.execute(`
+    SELECT e.*, ud.title AS document_title,
+           COUNT(ea.id) AS attempt_count
+    FROM exams e
+    JOIN update_documents ud ON e.document_id = ud.id
+    LEFT JOIN exam_attempts ea ON ea.exam_id = e.id
+    GROUP BY e.id
+    ORDER BY e.created_at DESC
+  `)
+  return rows.map(r => ({
+    ...toExam(r as Record<string, unknown>),
+    document_title: String((r as Record<string, unknown>).document_title ?? ''),
+    attempt_count: Number((r as Record<string, unknown>).attempt_count ?? 0),
+  }))
+}
+
 export async function getExamsByDocument(docId: number): Promise<Exam[]> {
   const db = await getDb()
   const { rows } = await db.execute({
