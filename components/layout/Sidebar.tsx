@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   MessageSquare, Database, PlusCircle, Tag,
-  BarChart3, Settings, Home, Upload, FileText, ClipboardList, Leaf,
+  BarChart3, Settings, Home, Upload, FileText, ClipboardList, Key,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -41,7 +41,7 @@ export function Sidebar() {
         <Link href="/" className="flex items-center gap-2.5 group">
           <div className="h-9 w-9 rounded-xl flex items-center justify-center border border-green-400/25 shadow-lg"
             style={{ background: 'rgba(34,197,94,0.15)' }}>
-            <Leaf className="h-4.5 w-4.5 text-green-400" style={{ width: 18, height: 18 }} />
+            <Key className="h-4.5 w-4.5 text-green-400" style={{ width: 18, height: 18 }} />
           </div>
           <div>
             <p className="font-bold text-white text-base leading-tight">

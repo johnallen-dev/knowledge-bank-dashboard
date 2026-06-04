@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { BookOpen, FileText, Headphones, Monitor, Phone, Users, Leaf, BookMarked, Database } from 'lucide-react'
+import { BookOpen, FileText, Headphones, Monitor, Phone, Users, Key, BookMarked, Database } from 'lucide-react'
 
 export default function Home() {
   return (
@@ -55,7 +55,7 @@ export default function Home() {
             <div className="relative">
               <div className="h-24 w-24 rounded-3xl flex items-center justify-center border border-green-400/25 shadow-2xl shadow-green-900"
                 style={{ background: 'linear-gradient(135deg, rgba(34,197,94,0.15) 0%, rgba(16,185,129,0.08) 100%)', backdropFilter: 'blur(12px)' }}>
-                <Leaf className="h-12 w-12 text-green-400" />
+                <Key className="h-12 w-12 text-green-400" />
               </div>
               <div className="absolute inset-0 rounded-3xl blur-md opacity-40" style={{ background: 'rgba(34,197,94,0.3)' }} />
             </div>
@@ -67,11 +67,11 @@ export default function Home() {
 
           <div className="flex items-center justify-center gap-3 mt-3">
             <div className="h-px w-14 bg-gradient-to-r from-transparent to-green-500/50" />
-            <p className="text-green-300/70 text-xs font-semibold uppercase tracking-[0.35em]">Knowledge Hub</p>
+            <p className="text-white/70 text-xs font-semibold uppercase tracking-[0.35em]">Knowledge Hub</p>
             <div className="h-px w-14 bg-gradient-to-l from-transparent to-green-500/50" />
           </div>
 
-          <p className="text-green-200/50 text-sm mt-4 max-w-xs mx-auto leading-relaxed">
+          <p className="text-white/60 text-sm mt-4 max-w-xs mx-auto leading-relaxed">
             Your intelligent workspace for guest support and team training
           </p>
         </div>
@@ -90,7 +90,7 @@ export default function Home() {
             </div>
             <div className="text-center">
               <p className="font-bold text-lg text-white">Knowledge Bank</p>
-              <p className="text-xs text-green-200/55 mt-1.5 leading-relaxed">Ask questions about your stay</p>
+              <p className="text-xs text-white/65 mt-1.5 leading-relaxed">Ask questions about your stay</p>
             </div>
           </Link>
 
@@ -105,12 +105,12 @@ export default function Home() {
             </div>
             <div className="text-center">
               <p className="font-bold text-lg text-white">Updates</p>
-              <p className="text-xs text-green-200/55 mt-1.5 leading-relaxed">Documents &amp; team exams</p>
+              <p className="text-xs text-white/65 mt-1.5 leading-relaxed">Documents &amp; team exams</p>
             </div>
           </Link>
         </div>
 
-        <p className="mt-14 text-green-500/30 text-xs tracking-wide">
+        <p className="mt-14 text-white/30 text-xs tracking-wide">
           © {new Date().getFullYear()} Greenkey · Knowledge Management System
         </p>
       </div>

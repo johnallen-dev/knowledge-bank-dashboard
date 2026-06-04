@@ -1,5 +1,5 @@
 import { QuestionInput } from '@/components/ask/QuestionInput'
-import { Users, Leaf } from 'lucide-react'
+import { Users, Key } from 'lucide-react'
 
 export default function UserPage() {
   return (
@@ -13,7 +13,7 @@ export default function UserPage() {
           <div>
             <div className="flex items-center gap-1.5">
               <h1 className="text-2xl font-bold text-green-900">Staff Knowledge Base</h1>
-              <Leaf className="h-4 w-4 text-green-500" />
+              <Key className="h-4 w-4 text-green-500" />
             </div>
             <p className="text-sm text-muted-foreground">
               Internal Q&amp;A — ask about procedures, operations, and policies

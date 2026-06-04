@@ -1,5 +1,5 @@
 import { QuestionInput } from '@/components/ask/QuestionInput'
-import { Headphones, Leaf } from 'lucide-react'
+import { Headphones, Key } from 'lucide-react'
 
 const PROPERTY_NAME = process.env.NEXT_PUBLIC_PROPERTY_NAME || 'Knowledge Bank'
 
@@ -14,9 +14,9 @@ export default function GuestPage() {
           </div>
         </div>
         <div className="flex items-center justify-center gap-2">
-          <Leaf className="h-4 w-4 text-green-500" />
+          <Key className="h-4 w-4 text-green-500" />
           <h1 className="text-2xl font-bold text-green-900">Guest Assistance</h1>
-          <Leaf className="h-4 w-4 text-green-500" />
+          <Key className="h-4 w-4 text-green-500" />
         </div>
         <p className="text-muted-foreground max-w-md mx-auto text-sm">
           Welcome to <strong className="text-green-700">{PROPERTY_NAME}</strong>. Ask us anything about your stay — we&apos;re here to help.
