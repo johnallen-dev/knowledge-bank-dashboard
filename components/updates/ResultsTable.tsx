@@ -3,26 +3,88 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Search, Download, ExternalLink } from 'lucide-react'
+import { Label } from '@/components/ui/label'
+import { Search, Download, ExternalLink, Trash2, X, AlertTriangle } from 'lucide-react'
+import { toast } from 'sonner'
 import type { ExamAttempt } from '@/lib/updates/types'
 
+// ── Password-protected delete dialog ─────────────────────────────────────────
+function DeleteDialog({
+  label,
+  onConfirm,
+  onCancel,
+}: {
+  label: string
+  onConfirm: () => Promise<void>
+  onCancel: () => void
+}) {
+  const [password, setPassword] = useState('')
+  const [deleting, setDeleting] = useState(false)
+
+  async function handleDelete() {
+    if (password !== '00000') { toast.error('Incorrect password'); return }
+    setDeleting(true)
+    await onConfirm()
+    setDeleting(false)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-2 text-destructive">
+            <AlertTriangle className="h-5 w-5 shrink-0" />
+            <h3 className="font-semibold">Delete Entry</h3>
+          </div>
+          <button onClick={onCancel} className="text-muted-foreground hover:text-foreground">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          You are about to permanently delete: <strong className="text-foreground">{label}</strong>. This cannot be undone.
+        </p>
+        <div className="space-y-2">
+          <Label>Enter admin password to confirm</Label>
+          <Input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleDelete()}
+            autoFocus
+          />
+        </div>
+        <div className="flex gap-2 pt-1">
+          <Button variant="outline" className="flex-1" onClick={onCancel}>Cancel</Button>
+          <Button
+            variant="destructive"
+            className="flex-1"
+            disabled={!password || deleting}
+            onClick={handleDelete}
+          >
+            {deleting ? 'Deleting…' : 'Delete'}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Main table ────────────────────────────────────────────────────────────────
 export function ResultsTable() {
   const [attempts, setAttempts] = useState<ExamAttempt[]>([])
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null)
 
-  useEffect(() => {
-    fetchResults()
-  }, [])
+  useEffect(() => { fetchResults() }, [])
 
   async function fetchResults(q?: string) {
     setLoading(true)
     try {
       const params = q ? `?search=${encodeURIComponent(q)}` : ''
-      const res = await fetch(`/api/updates/results${params}`, {
-        headers: { Authorization: 'Bearer 00000' },
-      })
+      const res = await fetch(`/api/updates/results${params}`, { headers: { Authorization: 'Bearer 00000' } })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
       setAttempts(data.attempts)
@@ -33,6 +95,21 @@ export function ResultsTable() {
     }
   }
 
+  async function handleDelete() {
+    if (!deleteTarget) return
+    const res = await fetch(`/api/updates/attempts/${deleteTarget.id}`, {
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer 00000' },
+    })
+    if (res.ok) {
+      toast.success('Entry deleted')
+      setAttempts(prev => prev.filter(a => a.id !== deleteTarget.id))
+    } else {
+      toast.error('Failed to delete entry')
+    }
+    setDeleteTarget(null)
+  }
+
   function handleSearch(val: string) {
     setSearch(val)
     fetchResults(val)
@@ -41,12 +118,8 @@ export function ResultsTable() {
   function exportCsv() {
     const headers = ['Name', 'Date', 'Score', 'Max', 'Document', 'Submitted']
     const rows = attempts.map(a => [
-      a.examinee_name,
-      a.exam_date,
-      String(a.score),
-      String(a.max_score),
-      a.document_title ?? '',
-      a.submitted_at,
+      a.examinee_name, a.exam_date, String(a.score), String(a.max_score),
+      a.document_title ?? '', a.submitted_at,
     ])
     const csv = [headers, ...rows].map(r => r.map(c => `"${c.replace(/"/g, '""')}"`).join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
@@ -57,97 +130,110 @@ export function ResultsTable() {
   }
 
   if (loading) return <div className="py-12 text-center text-sm text-muted-foreground">Loading results…</div>
-  if (error) return <div className="py-12 text-center text-sm text-destructive">{error}</div>
+  if (error)   return <div className="py-12 text-center text-sm text-destructive">{error}</div>
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by name or date…"
-            value={search}
-            onChange={e => handleSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <Button variant="outline" onClick={exportCsv} disabled={!attempts.length}>
-          <Download className="h-4 w-4" />
-          Export CSV
-        </Button>
-      </div>
-
-      {attempts.length === 0 ? (
-        <div className="py-12 text-center text-sm text-muted-foreground">No exam results yet.</div>
-      ) : (
-        <div className="border rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50 border-b">
-                <tr>
-                  {['Examinee', 'Date', 'Score', 'Document', 'Exam Link', 'Submitted', 'Signature', ''].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {attempts.map(a => (
-                  <tr key={a.id} className="hover:bg-muted/20 transition-colors">
-                    <td className="px-4 py-3 font-medium">{a.examinee_name}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{a.exam_date}</td>
-                    <td className="px-4 py-3">
-                      <Badge variant={a.score / a.max_score >= 0.7 ? 'default' : 'secondary'}>
-                        {a.score}/{a.max_score}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground max-w-[160px] truncate">{a.document_title}</td>
-                    <td className="px-4 py-3">
-                      {a.share_token && (
-                        <a
-                          href={`/exam/${a.share_token}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-xs text-primary hover:underline"
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                          /exam/{a.share_token}
-                        </a>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground text-xs">{new Date(a.submitted_at).toLocaleString()}</td>
-                    <td className="px-4 py-3">
-                      {a.signature_b64 && (
-                        <img
-                          src={a.signature_b64}
-                          alt="signature"
-                          className="h-8 w-20 object-contain border rounded bg-white"
-                        />
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          const blob = new Blob([JSON.stringify(a, null, 2)], { type: 'application/json' })
-                          const url = URL.createObjectURL(blob)
-                          const link = document.createElement('a')
-                          link.href = url
-                          link.download = `${a.examinee_name.replace(/\s+/g, '_')}_${a.exam_date}.json`
-                          link.click()
-                          URL.revokeObjectURL(url)
-                        }}
-                      >
-                        <Download className="h-3 w-3" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+    <>
+      {deleteTarget && (
+        <DeleteDialog
+          label={deleteTarget.label}
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
       )}
-    </div>
+
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name or date…"
+              value={search}
+              onChange={e => handleSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Button variant="outline" onClick={exportCsv} disabled={!attempts.length}>
+            <Download className="h-4 w-4" />
+            Export CSV
+          </Button>
+        </div>
+
+        {attempts.length === 0 ? (
+          <div className="py-12 text-center text-sm text-muted-foreground">No exam results yet.</div>
+        ) : (
+          <div className="border rounded-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50 border-b">
+                  <tr>
+                    {['Examinee', 'Date', 'Score', 'Document', 'Exam Link', 'Submitted', 'Signature', ''].map(h => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {attempts.map(a => (
+                    <tr key={a.id} className="hover:bg-muted/20 transition-colors">
+                      <td className="px-4 py-3 font-medium">{a.examinee_name}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{a.exam_date}</td>
+                      <td className="px-4 py-3">
+                        <Badge variant={a.score / a.max_score >= 0.7 ? 'default' : 'secondary'}>
+                          {a.score}/{a.max_score}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground max-w-[140px] truncate">{a.document_title}</td>
+                      <td className="px-4 py-3">
+                        {a.share_token && (
+                          <a href={`/exam/${a.share_token}`} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-xs text-primary hover:underline">
+                            <ExternalLink className="h-3 w-3" />
+                            /exam/{a.share_token}
+                          </a>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground text-xs">{new Date(a.submitted_at).toLocaleString()}</td>
+                      <td className="px-4 py-3">
+                        {a.signature_b64 && (
+                          <img src={a.signature_b64} alt="signature"
+                            className="h-8 w-20 object-contain border rounded bg-white" />
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="sm"
+                            onClick={() => {
+                              const blob = new Blob([JSON.stringify(a, null, 2)], { type: 'application/json' })
+                              const url = URL.createObjectURL(blob)
+                              const link = document.createElement('a')
+                              link.href = url
+                              link.download = `${a.examinee_name.replace(/\s+/g, '_')}_${a.exam_date}.json`
+                              link.click()
+                              URL.revokeObjectURL(url)
+                            }}>
+                            <Download className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:text-destructive hover:bg-red-50"
+                            onClick={() => setDeleteTarget({
+                              id: a.id,
+                              label: `${a.examinee_name} — ${a.exam_date}`,
+                            })}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   )
 }
