@@ -18,6 +18,7 @@ const EXAMINEES = [
   'Justine Marquez',
   'Gia Saclausa',
   'Cherie Josie Serafin',
+  'John Allen Astrera',
 ]
 
 interface Props {
