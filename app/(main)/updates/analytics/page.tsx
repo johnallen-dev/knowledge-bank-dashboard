@@ -74,13 +74,14 @@ export default function UpdatesAnalyticsPage() {
   useEffect(() => {
     setOrigin(window.location.origin)
     fetch('/api/updates/analytics')
-      .then(r => r.json())
-      .then(d => {
+      .then(async r => {
+        const d = await r.json()
+        if (!r.ok) throw new Error(d.error ?? `HTTP ${r.status}`)
         setSummary(d.summary)
         setByAgent(d.byAgent ?? [])
         setByLink(d.byLink ?? [])
       })
-      .catch(() => toast.error('Failed to load analytics'))
+      .catch(err => toast.error(`Analytics error: ${err.message}`))
       .finally(() => setLoading(false))
   }, [])
 
