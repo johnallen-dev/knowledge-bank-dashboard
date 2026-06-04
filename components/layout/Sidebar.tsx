@@ -76,45 +76,9 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Section indicator — context-sensitive */}
+      {/* Section indicator — only shown on Knowledge Bank pages */}
       <div className="border-t border-green-800/60 px-4 py-4">
-        {pathname.startsWith('/updates') ? (
-          <div className="flex gap-1.5">
-            <Link
-              href="/updates"
-              className={cn(
-                'flex-1 text-center text-xs py-1.5 rounded-lg font-medium transition-all',
-                pathname === '/updates'
-                  ? 'bg-green-500/25 text-white border border-green-400/30'
-                  : 'text-white/50 hover:bg-green-800/40 hover:text-white'
-              )}
-            >
-              Updates
-            </Link>
-            <Link
-              href="/updates/results"
-              className={cn(
-                'flex-1 text-center text-xs py-1.5 rounded-lg font-medium transition-all',
-                pathname === '/updates/results'
-                  ? 'bg-green-500/25 text-white border border-green-400/30'
-                  : 'text-white/50 hover:bg-green-800/40 hover:text-white'
-              )}
-            >
-              Results
-            </Link>
-            <Link
-              href="/updates/links"
-              className={cn(
-                'flex-1 text-center text-xs py-1.5 rounded-lg font-medium transition-all',
-                pathname === '/updates/links'
-                  ? 'bg-green-500/25 text-white border border-green-400/30'
-                  : 'text-white/50 hover:bg-green-800/40 hover:text-white'
-              )}
-            >
-              Links
-            </Link>
-          </div>
-        ) : (
+        {!pathname.startsWith('/updates') ? (
           <div className="flex gap-1.5">
             <Link
               href="/guest"
