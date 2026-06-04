@@ -46,7 +46,8 @@ export async function POST(req: NextRequest) {
       preview: extractedText.slice(0, 1500),
     })
   } catch (err) {
-    console.error('[POST /api/updates/upload]', err)
-    return NextResponse.json({ error: 'Upload failed. Please try again.' }, { status: 500 })
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('[POST /api/updates/upload]', message)
+    return NextResponse.json({ error: `Upload failed: ${message}` }, { status: 500 })
   }
 }

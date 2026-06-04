@@ -9,8 +9,12 @@ export async function extractTextFromBuffer(
 
   if (mimeType === 'application/pdf' || ext === 'pdf') {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const pdfParse = require('pdf-parse')
-    const result = await pdfParse(buffer)
+    const mod = require('pdf-parse')
+    const pdfParse = typeof mod === 'function' ? mod : (mod.default ?? mod)
+    const result = await pdfParse(buffer, { max: 0 }) // max:0 = parse all pages
+    if (!result || typeof result.text !== 'string') {
+      throw new Error('pdf-parse returned no text')
+    }
     return clean(result.text)
   }
 

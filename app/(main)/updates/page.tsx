@@ -1,15 +1,18 @@
 'use client'
 import { useState } from 'react'
 import { FileUploader } from '@/components/updates/FileUploader'
+import { UrlFetcher } from '@/components/updates/UrlFetcher'
 import { ExtractedTextPreview } from '@/components/updates/ExtractedTextPreview'
 import { ExamGenerator } from '@/components/updates/ExamGenerator'
 import { ExamLink } from '@/components/updates/ExamLink'
-import { FileText } from 'lucide-react'
+import { FileText, Upload, Link } from 'lucide-react'
 
 type Step = 'upload' | 'preview' | 'generate' | 'done'
+type InputMode = 'file' | 'url'
 
 export default function UpdatesPage() {
   const [step, setStep] = useState<Step>('upload')
+  const [mode, setMode] = useState<InputMode>('file')
   const [documentId, setDocumentId] = useState<number>(0)
   const [preview, setPreview] = useState({ charCount: 0, text: '' })
   const [shareToken, setShareToken] = useState('')
@@ -36,7 +39,7 @@ export default function UpdatesPage() {
         <div>
           <h1 className="text-2xl font-semibold">Updates</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Upload a document and generate an exam for your team
+            Upload a document or paste a link to generate an exam for your team
           </p>
         </div>
       </div>
@@ -59,23 +62,64 @@ export default function UpdatesPage() {
         <span className="ml-2 text-xs text-muted-foreground capitalize">{step === 'done' ? 'Complete' : step}</span>
       </div>
 
-      <div className="border rounded-xl bg-card p-6 shadow-sm">
-        {step === 'upload' && <FileUploader onUploaded={handleUploaded} />}
+      <div className="border rounded-xl bg-card shadow-sm overflow-hidden">
+        {step === 'upload' && (
+          <>
+            {/* Mode toggle */}
+            <div className="flex border-b">
+              <button
+                onClick={() => setMode('file')}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
+                  mode === 'file'
+                    ? 'bg-primary/5 text-primary border-b-2 border-primary'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
+                }`}
+              >
+                <Upload className="h-4 w-4" />
+                Upload File
+              </button>
+              <button
+                onClick={() => setMode('url')}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
+                  mode === 'url'
+                    ? 'bg-primary/5 text-primary border-b-2 border-primary'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
+                }`}
+              >
+                <Link className="h-4 w-4" />
+                From URL
+              </button>
+            </div>
+            <div className="p-6">
+              {mode === 'file'
+                ? <FileUploader onUploaded={handleUploaded} />
+                : <UrlFetcher onFetched={handleUploaded} />
+              }
+            </div>
+          </>
+        )}
+
         {step === 'preview' && (
-          <ExtractedTextPreview
-            preview={preview.text}
-            charCount={preview.charCount}
-            onConfirm={() => setStep('generate')}
-          />
+          <div className="p-6">
+            <ExtractedTextPreview
+              preview={preview.text}
+              charCount={preview.charCount}
+              onConfirm={() => setStep('generate')}
+            />
+          </div>
         )}
         {step === 'generate' && (
-          <ExamGenerator
-            documentId={documentId}
-            onGenerated={token => { setShareToken(token); setStep('done') }}
-          />
+          <div className="p-6">
+            <ExamGenerator
+              documentId={documentId}
+              onGenerated={token => { setShareToken(token); setStep('done') }}
+            />
+          </div>
         )}
         {step === 'done' && (
-          <ExamLink shareToken={shareToken} onReset={reset} />
+          <div className="p-6">
+            <ExamLink shareToken={shareToken} onReset={reset} />
+          </div>
         )}
       </div>
     </div>
