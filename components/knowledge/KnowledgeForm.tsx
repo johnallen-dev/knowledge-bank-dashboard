@@ -49,7 +49,7 @@ export function KnowledgeForm({ entry, defaultQuestion }: KnowledgeFormProps) {
         question: form.question.trim(),
         answer: form.answer.trim(),
         category_id: form.category_id ? Number(form.category_id) : null,
-        tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
+        tags: form.tags.split(',').map((t: string) => t.trim()).filter(Boolean),
         source_type: form.source_type,
         source_url: form.source_url.trim() || null,
         ...(entry ? { change_note: form.change_note } : {}),

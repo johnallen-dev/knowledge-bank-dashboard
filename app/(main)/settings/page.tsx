@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle, XCircle, ExternalLink } from 'lucide-react'
 
-export default function SettingsPage() {
+function SettingsContent() {
   const searchParams = useSearchParams()
   const [settings, setSettings] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
@@ -204,5 +204,13 @@ export default function SettingsPage() {
         </Button>
       </form>
     </div>
+  )
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense>
+      <SettingsContent />
+    </Suspense>
   )
 }

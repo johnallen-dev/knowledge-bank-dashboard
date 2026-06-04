@@ -219,7 +219,9 @@ Yes, for deluxe rooms.`}</pre>
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
-export default function NewKnowledgePage() {
+import { Suspense } from 'react'
+
+function NewKnowledgeContent() {
   const searchParams = useSearchParams()
   const prefillQ = searchParams.get('q') ?? undefined
 
@@ -251,5 +253,13 @@ export default function NewKnowledgePage() {
         </TabsContent>
       </Tabs>
     </div>
+  )
+}
+
+export default function NewKnowledgePage() {
+  return (
+    <Suspense>
+      <NewKnowledgeContent />
+    </Suspense>
   )
 }

@@ -162,7 +162,7 @@ export function parseMarkdownText(text: string): ParsedEntry[] {
   }
 
   // Strategy 3: Bold lines as questions, following paragraph as answer
-  const boldQA = normalized.matchAll(/\*\*(.+?)\*\*\s*\n+([\s\S]+?)(?=\n\n|\*\*|$)/g)
+  const boldQA = Array.from(normalized.matchAll(/\*\*(.+?)\*\*\s*\n+([\s\S]+?)(?=\n\n|\*\*|$)/g))
   for (const m of boldQA) {
     const question = m[1].trim()
     const answer = cleanMarkdown(m[2].trim())
