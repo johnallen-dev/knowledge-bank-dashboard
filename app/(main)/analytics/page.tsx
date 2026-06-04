@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { getAnalytics } from '@/lib/db/queries/analytics'
 import { StatCard } from '@/components/analytics/StatCard'
 import { QuestionsChart } from '@/components/analytics/QuestionsChart'
