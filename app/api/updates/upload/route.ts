@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { extractTextFromBuffer } from '@/lib/updates/parsers'
 import { createDocument } from '@/lib/db/queries/updates'
 
-const MAX_BYTES = 10_000_000
+const MAX_BYTES = 50_000_000
 
 const ALLOWED_TYPES = new Set([
   'application/pdf',
