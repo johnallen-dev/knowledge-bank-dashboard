@@ -1,0 +1,424 @@
+
+> knowledge-bank-dashboard@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.29
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+ ✓ Ready in 1680ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2.3s (474 modules)
+ GET / 307 in 2463ms
+ ○ Compiling /guest ...
+ ✓ Compiled /guest in 1339ms (590 modules)
+ GET /guest 200 in 1411ms
+ GET / 307 in 105ms
+ GET /guest 200 in 61ms
+ GET / 307 in 76ms
+ GET /guest 200 in 42ms
+ ○ Compiling /knowledge-base ...
+ ✓ Compiled /knowledge-base in 861ms (771 modules)
+ ✓ Compiled /api/knowledge in 208ms (432 modules)
+ ✓ Compiled (435 modules)
+ GET /api/knowledge?page=1&limit=20 200 in 570ms
+ GET /api/categories 200 in 576ms
+ GET /api/knowledge?page=1&limit=20 200 in 7ms
+ GET /api/categories 200 in 10ms
+ ✓ Compiled /knowledge-base/new in 227ms (823 modules)
+ GET /api/categories 200 in 14ms
+ GET /api/categories 200 in 7ms
+ ✓ Compiled /user in 239ms (827 modules)
+ GET /api/categories 200 in 16ms
+ GET /api/knowledge?page=1&limit=20 200 in 22ms
+ GET /api/categories 200 in 15ms
+ GET /api/knowledge?page=1&limit=20 200 in 13ms
+ GET /api/categories 200 in 7ms
+ GET /api/categories 200 in 7ms
+ ✓ Compiled /categories in 264ms (833 modules)
+ GET /api/categories 200 in 10ms
+ GET /api/categories 200 in 6ms
+ GET /api/categories 200 in 6ms
+ GET /api/categories 200 in 6ms
+ GET /api/categories 200 in 9ms
+ GET /api/knowledge?page=1&limit=20 200 in 15ms
+ GET /api/categories 200 in 14ms
+ GET /api/knowledge?page=1&limit=20 200 in 9ms
+ GET / 307 in 104ms
+ GET /guest 200 in 89ms
+ ✓ Compiled in 339ms (396 modules)
+ ✓ Compiled in 94ms (396 modules)
+ ✓ Compiled in 179ms (782 modules)
+ ✓ Compiled in 90ms (396 modules)
+ ✓ Compiled in 121ms (782 modules)
+ ✓ Compiled in 99ms (396 modules)
+ ✓ Compiled in 176ms (396 modules)
+ ✓ Compiled in 90ms (396 modules)
+ ✓ Compiled in 160ms (782 modules)
+ ✓ Compiled in 112ms (396 modules)
+ ✓ Compiled in 124ms (396 modules)
+ ✓ Compiled in 157ms (782 modules)
+ ✓ Compiled in 694ms (796 modules)
+ ✓ Compiled in 254ms (798 modules)
+ ✓ Compiled in 226ms (798 modules)
+ ○ Compiling /knowledge-base/import ...
+ ✓ Compiled /knowledge-base/import in 685ms (812 modules)
+ GET /knowledge-base/import 200 in 878ms
+ GET /guest 200 in 58ms
+ GET /guest 200 in 63ms
+ ✓ Compiled in 172ms (410 modules)
+ ✓ Compiled in 81ms (410 modules)
+ ✓ Compiled in 312ms (826 modules)
+ ✓ Compiled in 258ms (826 modules)
+ GET /knowledge-base/import 200 in 95ms
+ ○ Compiling /api/ask ...
+ ✓ Compiled /api/ask in 767ms (551 modules)
+(node:48252) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+ POST /api/ask 200 in 9555ms
+ ✓ Compiled /api/categories in 352ms (452 modules)
+ GET /api/categories 200 in 430ms
+ GET /api/categories 200 in 6ms
+ ✓ Compiled /categories in 456ms (420 modules)
+ ✓ Compiled /api/categories in 129ms (456 modules)
+ GET /api/categories 200 in 223ms
+ GET /api/categories 200 in 6ms
+ GET /api/categories 200 in 8ms
+ GET /api/categories 200 in 8ms
+ GET /api/categories 200 in 11ms
+ ✓ Compiled /api/knowledge in 207ms (455 modules)
+ ✓ Compiled in 0ms (455 modules)
+ ✓ Compiled in 0ms (455 modules)
+ ✓ Compiled in 1ms (455 modules)
+ GET /api/categories 200 in 506ms
+ GET /api/knowledge?page=1&limit=20 200 in 515ms
+ ✓ Compiled in 1ms (455 modules)
+ GET /api/knowledge?page=1&limit=20 200 in 247ms
+ GET /api/categories 200 in 9ms
+ GET /api/categories 200 in 8ms
+ ✓ Compiled in 711ms (826 modules)
+ ✓ Compiled in 675ms (833 modules)
+ GET /knowledge-base/new 200 in 124ms
+ GET /knowledge-base/new 200 in 750ms
+ GET /knowledge-base/import 200 in 157ms
+ ✓ Compiled in 1286ms (835 modules)
+ GET /knowledge-base/import 200 in 173ms
+ ○ Compiling /api/ask ...
+ ✓ Compiled /api/ask in 1176ms (555 modules)
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+ POST /api/ask 200 in 10040ms
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+ POST /api/ask 200 in 8215ms
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+ POST /api/ask 200 in 8342ms
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+ POST /api/ask 200 in 8838ms
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+ POST /api/ask 200 in 8250ms
+ GET /user 200 in 89ms
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+ POST /api/ask 200 in 8279ms
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+ POST /api/ask 200 in 8048ms
+ ✓ Compiled /api/knowledge in 190ms (558 modules)
+ ✓ Compiled (560 modules)
+ GET /api/knowledge?page=1&limit=20 200 in 411ms
+ GET /api/categories 200 in 420ms
+ GET /api/knowledge?page=1&limit=20 200 in 8ms
+ GET /api/categories 200 in 11ms
+ GET /api/knowledge?category=breakfast&page=1&limit=20 200 in 9ms
+ GET /api/categories 200 in 8ms
+ GET /api/categories 200 in 7ms
+ ✓ Compiled /guest in 257ms (564 modules)
+ ○ Compiling /analytics ...
+ ✓ Compiled /analytics in 2.7s (2000 modules)
+ ○ Compiling /settings ...
+ ✓ Compiled /settings in 589ms (2016 modules)
+ ✓ Compiled /api/settings in 196ms (1093 modules)
+ GET /api/settings 200 in 252ms
+ GET /api/settings 200 in 6ms
+ ✓ Compiled /api/notion/connect in 280ms (1095 modules)
+ GET /api/notion/connect 500 in 323ms
+ GET /api/notion/connect 500 in 10ms
+ GET /settings 200 in 103ms
+ GET /api/settings 200 in 20ms
+ GET /api/settings 200 in 6ms
+ GET /api/categories 200 in 14ms
+ GET /api/knowledge?page=1&limit=20 200 in 21ms
+ GET /api/categories 200 in 15ms
+ GET /api/knowledge?page=1&limit=20 200 in 11ms
+ ✓ Compiled /knowledge-base/new in 360ms (1023 modules)
+ ✓ Compiled /api/knowledge/import in 251ms (970 modules)
+ POST /api/knowledge/import 200 in 319ms
+ ✓ Compiled /knowledge-base in 238ms (982 modules)
+ ✓ Compiled /api/categories in 144ms (984 modules)
+ ✓ Compiled (987 modules)
+ GET /api/categories 200 in 330ms
+ GET /api/knowledge?page=1&limit=20 200 in 337ms
+ GET /api/knowledge?page=1&limit=20 200 in 7ms
+ GET /api/categories 200 in 11ms
+ ○ Compiling /knowledge-base/[id] ...
+ ✓ Compiled /knowledge-base/[id] in 677ms (1926 modules)
+ GET /api/categories 200 in 18ms
+ GET /api/categories 200 in 8ms
+ GET /api/categories 200 in 9ms
+ GET /api/knowledge?page=1&limit=20 200 in 13ms
+ GET /api/categories 200 in 13ms
+ GET /api/knowledge?page=1&limit=20 200 in 9ms
+ ✓ Compiled /user in 269ms (996 modules)
+ ✓ Compiled /api/ask in 284ms (1091 modules)
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+ POST /api/ask 200 in 9136ms
+ GET /api/categories 200 in 16ms
+ GET /api/knowledge?page=1&limit=20 200 in 21ms
+ GET /api/categories 200 in 15ms
+ GET /api/knowledge?page=1&limit=20 200 in 13ms
+ GET /api/categories 200 in 9ms
+ GET /api/knowledge?page=1&limit=20 200 in 14ms
+ GET /api/categories 200 in 13ms
+ GET /api/knowledge?page=1&limit=20 200 in 8ms
+ GET /api/categories 200 in 6ms
+ GET /api/categories 200 in 5ms
+ POST /api/knowledge/import 200 in 534ms
+ GET /api/categories 200 in 46ms
+ GET /api/knowledge?page=1&limit=20 200 in 28ms
+ GET /api/categories 200 in 17ms
+ GET /api/knowledge?page=1&limit=20 200 in 14ms
+ GET /api/knowledge?page=2&limit=20 200 in 6ms
+ GET /api/knowledge?page=3&limit=20 200 in 61ms
+ ○ Compiling /api/knowledge/[id] ...
+ ✓ Compiled /api/knowledge/[id] in 915ms (992 modules)
+ DELETE /api/knowledge/1 200 in 1462ms
+ GET /api/knowledge?page=3&limit=20 200 in 11ms
+ ✓ Compiled /api/ask in 185ms (1093 modules)
+ POST /api/ask 200 in 723ms
+ ✓ Compiled in 978ms (2024 modules)
+ GET /user 200 in 415ms
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+ POST /api/ask 200 in 9180ms
+ ○ Compiling /api/knowledge ...
+ ✓ Compiled /api/knowledge in 649ms (1087 modules)
+ ✓ Compiled (1089 modules)
+ GET /api/categories 200 in 904ms
+ GET /api/knowledge?page=1&limit=20 200 in 909ms
+ GET /api/categories 200 in 7ms
+ GET /api/knowledge?page=1&limit=20 200 in 12ms
+ GET /api/knowledge?page=2&limit=20 200 in 6ms
+ GET /api/knowledge?page=3&limit=20 200 in 7ms
+ POST /api/ask 200 in 417ms
+ ✓ Compiled in 714ms (1895 modules)
+ GET /user 200 in 734ms
+ ○ Compiling /guest ...
+ ✓ Compiled /guest in 1814ms (959 modules)
+ ○ Compiling /api/ask ...
+ ✓ Compiled /api/ask in 584ms (563 modules)
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+ POST /api/ask 200 in 10440ms
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+ POST /api/ask 200 in 8830ms
+ ○ Compiling /api/knowledge ...
+ ✓ Compiled /api/knowledge in 2.3s (465 modules)
+ ✓ Compiled (467 modules)
+ GET /api/knowledge?page=1&limit=20 200 in 3440ms
+ GET /api/categories 200 in 3452ms
+ GET /knowledge-base 200 in 3422ms
+ GET /api/categories 200 in 17ms
+ GET /api/knowledge?page=1&limit=20 200 in 22ms
+ GET /api/categories 200 in 12ms
+ GET /api/knowledge?page=1&limit=20 200 in 10ms
+ ○ Compiling /analytics ...
+ ✓ Compiled /analytics in 503ms (992 modules)
+ ✓ Compiled /knowledge-base/import in 414ms (1001 modules)
+ ✓ Compiled /categories in 244ms (963 modules)
+ ✓ Compiled /api/categories in 139ms (994 modules)
+ GET /api/categories 200 in 212ms
+ GET /api/categories 200 in 6ms
+ GET /knowledge-base/import 200 in 253ms
+ ○ Compiling /api/ask ...
+ ✓ Compiled /api/ask in 620ms (1065 modules)
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+ POST /api/ask 200 in 10315ms
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+ POST /api/ask 200 in 8238ms
+ ✓ Compiled /knowledge-base in 216ms (1077 modules)
+ ✓ Compiled /api/knowledge in 146ms (1080 modules)
+ ✓ Compiled (1082 modules)
+ GET /api/knowledge?page=1&limit=20 200 in 454ms
+ GET /api/categories 200 in 460ms
+ GET /api/knowledge?page=1&limit=20 200 in 7ms
+ GET /api/categories 200 in 9ms
+ ✓ Compiled in 670ms (1875 modules)
+ ✓ Compiled in 126ms (940 modules)
+ ✓ Compiled in 141ms (940 modules)
+ ✓ Compiled in 268ms (940 modules)
+ ✓ Compiled in 127ms (940 modules)
+ ✓ Compiled in 149ms (940 modules)
+ ✓ Compiled in 431ms (940 modules)
+ ✓ Compiled in 174ms (940 modules)
+ ✓ Compiled in 167ms (941 modules)
+ ✓ Compiled in 124ms (941 modules)
+ GET /knowledge-base/import 200 in 165ms
+ ✓ Compiled in 742ms (1876 modules)
+ ✓ Compiled in 446ms (1876 modules)
+ ✓ Compiled in 331ms (1876 modules)
+ ✓ Compiled in 484ms (1876 modules)
+ ✓ Compiled in 248ms (1876 modules)
+ GET /knowledge-base/import 200 in 128ms
+ GET /knowledge-base/import 200 in 73ms
+ ✓ Compiled in 516ms (1876 modules)
+ ✓ Compiled in 490ms (1882 modules)
+ ✓ Compiled in 272ms (1882 modules)
+ GET /knowledge-base/import 200 in 123ms
+ GET /knowledge-base/import 200 in 28ms
+ ✓ Compiled in 461ms (1882 modules)
+ ✓ Compiled in 283ms (1882 modules)
+ GET /knowledge-base/import 200 in 102ms
+ GET /knowledge-base/import 200 in 67ms
+ ✓ Compiled /knowledge-base/new in 344ms (946 modules)
+ ✓ Compiled /api/ask in 425ms (1076 modules)
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+ POST /api/ask 200 in 9354ms
+ ✓ Compiled /knowledge-base in 310ms (1089 modules)
+ ✓ Compiled /api/knowledge in 158ms (1092 modules)
+ ✓ Compiled (1094 modules)
+ GET /api/knowledge?page=1&limit=20 200 in 344ms
+ GET /api/categories 200 in 348ms
+ GET /api/categories 200 in 21ms
+ GET /api/knowledge?page=1&limit=20 200 in 25ms
+ GET /api/knowledge?page=2&limit=20 200 in 9ms
+ GET /api/knowledge?page=3&limit=20 200 in 9ms
+ POST /api/ask 200 in 558ms
+ POST /api/ask 200 in 375ms
+ POST /api/ask 200 in 359ms
+ ✓ Compiled in 628ms (1360 modules)
+ GET /guest 200 in 80ms
+ ✓ Compiled /api/ask in 343ms (551 modules)
+ POST /api/ask 200 in 895ms
+ GET /guest 200 in 91ms
+ POST /api/ask 200 in 368ms
+ ✓ Compiled in 384ms (1360 modules)
+ ✓ Compiled in 154ms (944 modules)
+ GET /guest 200 in 93ms
+ ✓ Compiled /api/knowledge in 99ms (452 modules)
+ ✓ Compiled (455 modules)
+ GET /api/knowledge?page=1&limit=20 200 in 619ms
+ GET /api/categories 200 in 626ms
+ GET /api/knowledge?page=1&limit=20 200 in 6ms
+ GET /api/categories 200 in 9ms
+ GET /api/knowledge?page=2&limit=20 200 in 7ms
+ ✓ Compiled /api/ask in 169ms (556 modules)
+ POST /api/ask 200 in 590ms
+ POST /api/ask 200 in 347ms
+ GET /api/categories 200 in 8ms
+ GET /api/knowledge?page=1&limit=20 200 in 11ms
+ GET /api/categories 200 in 25ms
+ GET /api/knowledge?page=1&limit=20 200 in 13ms
+ POST /api/ask 200 in 363ms
+ GET /api/categories 200 in 8ms
+ GET /api/knowledge?page=1&limit=20 200 in 15ms
+ GET /api/categories 200 in 14ms
+ GET /api/knowledge?page=1&limit=20 200 in 11ms
+ POST /api/ask 200 in 362ms
+ ✓ Compiled in 349ms (1360 modules)
+ ✓ Compiled in 139ms (944 modules)
+ ✓ Compiled in 148ms (944 modules)
+ ✓ Compiled in 151ms (944 modules)
+ ✓ Compiled /api/ask in 155ms (551 modules)
+ POST /api/ask 200 in 605ms
+ POST /api/ask 200 in 360ms
+ POST /api/ask 200 in 330ms
+ POST /api/ask 200 in 322ms
+ POST /api/ask 200 in 313ms
+ POST /api/ask 200 in 316ms
+ POST /api/ask 200 in 313ms
+ ✓ Compiled /api/knowledge in 106ms (554 modules)
+ ✓ Compiled (556 modules)
+ GET /api/knowledge?page=1&limit=20 200 in 227ms
+ GET /api/categories 200 in 234ms
+ GET /api/categories 200 in 6ms
+ GET /api/knowledge?page=1&limit=20 200 in 9ms
+ ✓ Compiled /knowledge-base/import in 336ms (568 modules)
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 834ms (1368 modules)
+ ⨯ app\(main)\knowledge-base\import\page.tsx (199:23) @ useRef
+ ⨯ ReferenceError: useRef is not defined
+    at ImportPage (knowledge-base/import/page.tsx:452:25)
+digest: "768796919"
+[0m [90m 197 |[39m[0m
+[0m [90m 198 |[39m   [90m// Guards the persist effect from running before the restore effect has finished[39m[0m
+[0m[31m[1m>[22m[39m[90m 199 |[39m   [36mconst[39m initialized [33m=[39m useRef([36mfalse[39m)[0m
+[0m [90m     |[39m                       [31m[1m^[22m[39m[0m
+[0m [90m 200 |[39m[0m
+[0m [90m 201 |[39m   [90m// Restore draft state on mount — runs first, then marks initialized[39m[0m
+[0m [90m 202 |[39m   useEffect(() [33m=>[39m {[0m
+ GET /knowledge-base/import 500 in 550ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 314ms (1368 modules)
+ GET /knowledge-base/import 200 in 158ms
+ GET /knowledge-base/import 200 in 65ms
+ GET /knowledge-base/import 200 in 49ms
+ GET /knowledge-base/import 200 in 62ms
+ ✓ Compiled in 243ms (944 modules)
+ ✓ Compiled in 154ms (944 modules)
+ ✓ Compiled in 341ms (1368 modules)
+ ✓ Compiled in 303ms (1368 modules)
+ ✓ Compiled in 289ms (1368 modules)
+ ✓ Compiled in 320ms (1368 modules)
+ ✓ Compiled in 268ms (1370 modules)
+ ✓ Compiled in 258ms (1370 modules)
+ ✓ Compiled in 260ms (1370 modules)
+ ✓ Compiled in 264ms (1370 modules)
+ GET /knowledge-base/import 200 in 131ms
+ GET /knowledge-base/import 200 in 52ms
+ ○ Compiling /api/ask ...
+ ✓ Compiled /api/ask in 504ms (560 modules)
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+ POST /api/ask 200 in 8862ms
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+ POST /api/ask 200 in 9624ms
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+@notionhq/client warn: request fail { code: 'unauthorized', message: 'API token is invalid.' }
+ POST /api/ask 200 in 8242ms

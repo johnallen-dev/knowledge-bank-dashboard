@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "PowerShell(node --version)",
+      "PowerShell(npm --version)",
+      "PowerShell(Get-ChildItem \"$env:LOCALAPPDATA\\\\claude-cli-nodejs\" | Select-Object Name, FullName -First 20)",
+      "PowerShell($env:PATH -split \";\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\John Allen Astrera\\\\CLAUDE2\\\\Knowledge Bank Dashboard\\\\app\\\\api\\\\notion\\\\connect\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\John Allen Astrera\\\\CLAUDE2\\\\Knowledge Bank Dashboard\\\\app\\\\api\\\\notion\\\\callback\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\John Allen Astrera\\\\CLAUDE2\\\\Knowledge Bank Dashboard\\\\app\\\\\\(main\\)\\\\knowledge-base\\\\import\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\John Allen Astrera\\\\CLAUDE2\\\\Knowledge Bank Dashboard\\\\app\\\\api\\\\knowledge\\\\import\")"
+    ]
+  }
+}
