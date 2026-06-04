@@ -56,6 +56,7 @@ export function Sidebar() {
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-5">
         {sections.map((section, si) => {
           if (pathname.startsWith('/updates') && section !== 'updates') return null
+          if (!pathname.startsWith('/updates') && section === 'updates') return null
           const items = NAV.filter(n => n.section === section)
           return (
             <div key={section} className={si > 0 ? 'pt-1' : undefined}>
