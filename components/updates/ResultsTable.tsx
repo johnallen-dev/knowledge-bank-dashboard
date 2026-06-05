@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
-import { Search, Download, ExternalLink, Trash2, X, AlertTriangle, Clock } from 'lucide-react'
+import { Search, Download, ExternalLink, Trash2, X, AlertTriangle, Clock, Filter } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 function formatDuration(seconds: number): string {
   if (!seconds) return '—'
@@ -79,14 +80,25 @@ function DeleteDialog({
 }
 
 // ── Main table ────────────────────────────────────────────────────────────────
+interface ExamOption { id: number; share_token: string; document_title: string; question_count: number }
+
 export function ResultsTable() {
   const [attempts, setAttempts] = useState<ExamAttempt[]>([])
   const [search, setSearch] = useState('')
+  const [examFilter, setExamFilter] = useState('all')
+  const [examOptions, setExamOptions] = useState<ExamOption[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null)
 
-  useEffect(() => { fetchResults() }, [])
+  useEffect(() => {
+    fetchResults()
+    // Load exam list for filter dropdown
+    fetch('/api/updates/exams')
+      .then(r => r.json())
+      .then(d => setExamOptions(d.exams ?? []))
+      .catch(() => {})
+  }, [])
 
   async function fetchResults(q?: string) {
     setLoading(true)
@@ -137,6 +149,11 @@ export function ResultsTable() {
     URL.revokeObjectURL(url)
   }
 
+  // Apply exam link filter client-side
+  const filtered = examFilter === 'all'
+    ? attempts
+    : attempts.filter(a => a.share_token === examFilter)
+
   if (loading) return <div className="py-12 text-center text-sm text-muted-foreground">Loading results…</div>
   if (error)   return <div className="py-12 text-center text-sm text-destructive">{error}</div>
 
@@ -151,8 +168,9 @@ export function ResultsTable() {
       )}
 
       <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          {/* Search */}
+          <div className="relative flex-1 w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search by name or date…"
@@ -161,14 +179,33 @@ export function ResultsTable() {
               className="pl-9"
             />
           </div>
-          <Button variant="outline" onClick={exportCsv} disabled={!attempts.length}>
+          {/* Exam link filter */}
+          <div className="flex items-center gap-2 shrink-0">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Select value={examFilter} onValueChange={setExamFilter}>
+              <SelectTrigger className="w-52">
+                <SelectValue placeholder="Filter by exam…" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All exams</SelectItem>
+                {examOptions.map(e => (
+                  <SelectItem key={e.share_token} value={e.share_token}>
+                    {e.document_title} ({e.question_count}-item)
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button variant="outline" onClick={exportCsv} disabled={!filtered.length} className="shrink-0">
             <Download className="h-4 w-4" />
             Export CSV
           </Button>
         </div>
 
-        {attempts.length === 0 ? (
-          <div className="py-12 text-center text-sm text-muted-foreground">No exam results yet.</div>
+        {filtered.length === 0 ? (
+          <div className="py-12 text-center text-sm text-muted-foreground">
+            {attempts.length === 0 ? 'No exam results yet.' : 'No results match the selected filter.'}
+          </div>
         ) : (
           <div className="border rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
@@ -181,7 +218,7 @@ export function ResultsTable() {
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {attempts.map(a => (
+                  {filtered.map(a => (
                     <tr key={a.id} className="hover:bg-muted/20 transition-colors">
                       <td className="px-4 py-3 font-medium">{a.examinee_name}</td>
                       <td className="px-4 py-3 text-muted-foreground">{a.exam_date}</td>
