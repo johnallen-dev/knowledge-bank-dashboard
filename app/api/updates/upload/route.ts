@@ -8,9 +8,11 @@ const ALLOWED_TYPES = new Set([
   'application/pdf',
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'text/html',
+  'text/plain',
 ])
 
-const ALLOWED_EXTS = new Set(['pdf', 'xlsx', 'docx'])
+const ALLOWED_EXTS = new Set(['pdf', 'xlsx', 'docx', 'html', 'htm', 'txt'])
 
 export async function POST(req: NextRequest) {
   try {

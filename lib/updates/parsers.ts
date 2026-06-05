@@ -42,6 +42,23 @@ export async function extractTextFromBuffer(
     return clean(result.value)
   }
 
+  if (
+    mimeType === 'text/html' ||
+    mimeType === 'text/plain' ||
+    ext === 'html' || ext === 'htm' || ext === 'txt'
+  ) {
+    const html = buffer.toString('utf-8')
+    return clean(
+      html
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<\/?(p|div|section|article|header|footer|h[1-6]|li|tr|td|th|br)[^>]*>/gi, '\n')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+        .replace(/&nbsp;/g, ' ').replace(/&#39;/g, "'").replace(/&[a-z]+;/gi, ' ')
+    )
+  }
+
   throw new Error(`Unsupported file type: ${mimeType || ext}`)
 }
 

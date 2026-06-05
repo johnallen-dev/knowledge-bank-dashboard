@@ -13,7 +13,7 @@ export function FileUploader({ onUploaded }: Props) {
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
 
-  const accept = '.pdf,.xlsx,.docx'
+  const accept = '.pdf,.xlsx,.docx,.html,.htm,.txt'
 
   const handleFile = useCallback((f: File) => setFile(f), [])
 
@@ -51,7 +51,7 @@ export function FileUploader({ onUploaded }: Props) {
         <Upload className="h-8 w-8 text-muted-foreground" />
         <div className="text-center">
           <p className="text-sm font-medium">Drop your file here or click to browse</p>
-          <p className="text-xs text-muted-foreground mt-1">PDF, Excel (.xlsx), or Word (.docx) — max 50 MB</p>
+          <p className="text-xs text-muted-foreground mt-1">PDF, Excel, Word, HTML, or TXT — max 50 MB</p>
         </div>
         <input type="file" accept={accept} className="hidden" onChange={e => {
           const f = e.target.files?.[0]
