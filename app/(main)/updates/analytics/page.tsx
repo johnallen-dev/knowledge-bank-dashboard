@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { BarChart3, User, Link2, Trophy, ClipboardList, TrendingUp, CheckCircle, Clock } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { BarChart3, User, Link2, Trophy, ClipboardList, TrendingUp, CheckCircle, Clock, RefreshCw } from 'lucide-react'
 
 function formatDuration(seconds: number): string {
   if (!seconds) return '—'
@@ -71,8 +72,8 @@ export default function UpdatesAnalyticsPage() {
   const [loading, setLoading] = useState(true)
   const [origin, setOrigin] = useState('')
 
-  useEffect(() => {
-    setOrigin(window.location.origin)
+  function loadData() {
+    setLoading(true)
     fetch('/api/updates/analytics')
       .then(async r => {
         const d = await r.json()
@@ -83,6 +84,11 @@ export default function UpdatesAnalyticsPage() {
       })
       .catch(err => toast.error(`Analytics error: ${err.message}`))
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    setOrigin(window.location.origin)
+    loadData()
   }, [])
 
   if (loading) return <div className="py-20 text-center text-sm text-muted-foreground">Loading analytics…</div>
@@ -94,14 +100,20 @@ export default function UpdatesAnalyticsPage() {
   return (
     <div className="space-y-6 max-w-5xl">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-          <BarChart3 className="h-5 w-5 text-primary" />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <BarChart3 className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-semibold">Exam Analytics</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">Performance breakdown by agent and exam link</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-semibold">Exam Analytics</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Performance breakdown by agent and exam link</p>
-        </div>
+        <Button variant="outline" size="sm" onClick={loadData} disabled={loading}>
+          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
       </div>
 
       {/* Summary cards */}
