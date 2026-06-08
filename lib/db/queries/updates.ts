@@ -30,6 +30,10 @@ function toExam(row: Record<string, unknown>): Exam {
 function toAttempt(row: Record<string, unknown>): ExamAttempt {
   let answers: Record<string, string> = {}
   try { answers = JSON.parse(String(row.answers_json ?? '{}')) } catch { /* */ }
+  let questions: ExamQuestion[] | undefined
+  try {
+    if (row.questions_json) questions = JSON.parse(String(row.questions_json))
+  } catch { /* */ }
   return {
     id: Number(row.id),
     exam_id: Number(row.exam_id),
@@ -44,6 +48,7 @@ function toAttempt(row: Record<string, unknown>): ExamAttempt {
     document_title: row.document_title ? String(row.document_title) : undefined,
     question_count: row.question_count ? Number(row.question_count) : undefined,
     share_token: row.share_token ? String(row.share_token) : undefined,
+    questions,
   }
 }
 
@@ -214,9 +219,10 @@ export async function listAttempts(filter?: { search?: string }): Promise<ExamAt
   const sql = `
     SELECT
       ea.*,
-      ud.title  AS document_title,
+      ud.title      AS document_title,
       e.question_count,
-      e.share_token
+      e.share_token,
+      e.questions_json
     FROM exam_attempts ea
     JOIN exams e          ON ea.exam_id = e.id
     JOIN update_documents ud ON e.document_id = ud.id
@@ -231,7 +237,7 @@ export async function listAttempts(filter?: { search?: string }): Promise<ExamAt
 export async function getAttempt(id: number): Promise<ExamAttempt | null> {
   const db = await getDb()
   const { rows } = await db.execute({
-    sql: `SELECT ea.*, ud.title AS document_title, e.question_count, e.share_token
+    sql: `SELECT ea.*, ud.title AS document_title, e.question_count, e.share_token, e.questions_json
           FROM exam_attempts ea
           JOIN exams e ON ea.exam_id = e.id
           JOIN update_documents ud ON e.document_id = ud.id

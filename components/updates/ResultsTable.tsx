@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
-import { Search, Download, ExternalLink, Trash2, X, AlertTriangle, Clock, Filter } from 'lucide-react'
+import { Search, Download, ExternalLink, Trash2, X, AlertTriangle, Clock, Filter, Eye, CheckCircle2, XCircle } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import type { ExamQuestion } from '@/lib/updates/types'
 
 function formatDuration(seconds: number): string {
   if (!seconds) return '—'
@@ -79,6 +80,128 @@ function DeleteDialog({
   )
 }
 
+// ── Exam view modal ───────────────────────────────────────────────────────────
+function ExamViewModal({
+  examinee,
+  examDate,
+  score,
+  maxScore,
+  questions,
+  answers,
+  onClose,
+}: {
+  examinee: string
+  examDate: string
+  score: number
+  maxScore: number
+  questions: ExamQuestion[]
+  answers: Record<string, string>
+  onClose: () => void
+}) {
+  function isCorrect(q: ExamQuestion): boolean {
+    const given = (answers[q.id] ?? '').trim().toLowerCase()
+    if (!given) return false
+    if (q.type === 'multiple_choice' || q.type === 'true_false') {
+      return given === q.correct_answer.trim().toLowerCase()
+    }
+    // fill_blank
+    const variants = [q.correct_answer, ...(q.acceptable_variants ?? [])].map(v => v.trim().toLowerCase())
+    return variants.includes(given)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.6)' }}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col">
+        {/* Header */}
+        <div className="flex items-start justify-between px-6 py-4 border-b">
+          <div>
+            <h3 className="font-semibold text-lg">Exam Review</h3>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {examinee} · {examDate} · Score: <strong>{score}/{maxScore}</strong>
+            </p>
+          </div>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground mt-0.5">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Questions */}
+        <div className="overflow-y-auto flex-1 px-6 py-4 space-y-4">
+          {questions.map((q, i) => {
+            const correct = isCorrect(q)
+            const given = answers[q.id] ?? ''
+            return (
+              <div
+                key={q.id}
+                className={`rounded-lg border p-4 ${correct ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}
+              >
+                <div className="flex items-start gap-2">
+                  {correct
+                    ? <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 shrink-0" />
+                    : <XCircle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground">
+                      <span className="text-muted-foreground mr-1">Q{i + 1}.</span>{q.question}
+                    </p>
+
+                    {/* Options for MC/TF */}
+                    {q.options && q.options.length > 0 && (
+                      <ul className="mt-2 space-y-1">
+                        {q.options.map(opt => {
+                          const isAnswer = opt.trim().toLowerCase() === q.correct_answer.trim().toLowerCase()
+                          const isGiven = opt.trim().toLowerCase() === given.trim().toLowerCase()
+                          return (
+                            <li
+                              key={opt}
+                              className={`text-xs px-2 py-1 rounded ${
+                                isAnswer
+                                  ? 'bg-green-100 text-green-700 font-medium'
+                                  : isGiven && !isAnswer
+                                  ? 'bg-red-100 text-red-600 line-through'
+                                  : 'text-muted-foreground'
+                              }`}
+                            >
+                              {opt}
+                              {isAnswer && ' ✓'}
+                              {isGiven && !isAnswer && ' (your answer)'}
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    )}
+
+                    {/* Fill-blank answer */}
+                    {(!q.options || q.options.length === 0) && (
+                      <div className="mt-2 space-y-1 text-xs">
+                        <p>
+                          <span className="text-muted-foreground">Your answer: </span>
+                          <span className={correct ? 'text-green-700 font-medium' : 'text-red-600 font-medium'}>
+                            {given || '(no answer)'}
+                          </span>
+                        </p>
+                        {!correct && (
+                          <p>
+                            <span className="text-muted-foreground">Correct answer: </span>
+                            <span className="text-green-700 font-medium">{q.correct_answer}</span>
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        <div className="px-6 py-3 border-t flex justify-end">
+          <Button variant="outline" onClick={onClose}>Close</Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Main table ────────────────────────────────────────────────────────────────
 interface ExamOption { id: number; share_token: string; document_title: string; question_count: number }
 
@@ -90,6 +213,7 @@ export function ResultsTable() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null)
+  const [viewTarget, setViewTarget] = useState<typeof attempts[0] | null>(null)
 
   useEffect(() => {
     fetchResults()
@@ -166,6 +290,17 @@ export function ResultsTable() {
           onCancel={() => setDeleteTarget(null)}
         />
       )}
+      {viewTarget && viewTarget.questions && (
+        <ExamViewModal
+          examinee={viewTarget.examinee_name}
+          examDate={viewTarget.exam_date}
+          score={viewTarget.score}
+          maxScore={viewTarget.max_score}
+          questions={viewTarget.questions}
+          answers={viewTarget.answers}
+          onClose={() => setViewTarget(null)}
+        />
+      )}
 
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
@@ -212,7 +347,7 @@ export function ResultsTable() {
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 border-b">
                   <tr>
-                    {['Examinee', 'Date', 'Score', 'Duration', 'Document', 'Exam Link', 'Submitted', 'Signature', ''].map(h => (
+                    {['Examinee', 'Date', 'Score', 'Duration', 'Document', 'Exam Link', 'Submitted', 'Signature', 'Exam', ''].map(h => (
                       <th key={h} className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">{h}</th>
                     ))}
                   </tr>
@@ -247,6 +382,21 @@ export function ResultsTable() {
                         {a.signature_b64 && (
                           <img src={a.signature_b64} alt="signature"
                             className="h-8 w-20 object-contain border rounded bg-white" />
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {a.questions && a.questions.length > 0 ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-1 text-xs h-7"
+                            onClick={() => setViewTarget(a)}
+                          >
+                            <Eye className="h-3 w-3" />
+                            View
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
                         )}
                       </td>
                       <td className="px-4 py-3">

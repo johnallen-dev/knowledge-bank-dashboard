@@ -43,4 +43,5 @@ export interface ExamAttempt {
   document_title?: string
   question_count?: number
   share_token?: string
+  questions?: ExamQuestion[]
 }
