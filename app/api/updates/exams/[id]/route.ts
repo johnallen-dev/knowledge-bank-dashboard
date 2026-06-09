@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getExamByToken, deleteExam } from '@/lib/db/queries/updates'
 import type { ExamQuestion } from '@/lib/updates/types'
 
+export const dynamic = 'force-dynamic'
+
 const ADMIN_PASSWORD = '00000'
 
 function sanitise(q: ExamQuestion) {

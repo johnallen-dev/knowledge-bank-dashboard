@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { listAllExams } from '@/lib/db/queries/updates'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     const exams = await listAllExams()
