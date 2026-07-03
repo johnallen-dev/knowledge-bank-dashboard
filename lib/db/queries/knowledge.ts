@@ -152,6 +152,25 @@ export async function ftsSearch(query: string, limit = 5): Promise<KnowledgeEntr
   }
 }
 
+/** OR-based search — any term matches. BM25 ranks entries with more matching terms higher. */
+export async function ftsSearchOr(terms: string[], limit = 5): Promise<KnowledgeEntry[]> {
+  const db = await getDb()
+  const tokens = terms
+    .flatMap(t => t.toLowerCase().replace(/[^\w\s]/g, ' ').trim().split(/\s+/))
+    .filter(w => w.length > 1)
+  if (tokens.length === 0) return []
+  const query = [...new Set(tokens)].map(w => `${w}*`).join(' OR ')
+  try {
+    const { rows } = await db.execute({
+      sql: `SELECT ke.*, fts.rank, c.name as category_name FROM knowledge_fts fts JOIN knowledge_entries ke ON ke.id = fts.rowid LEFT JOIN categories c ON c.id = ke.category_id WHERE knowledge_fts MATCH ? AND ke.is_archived = 0 ORDER BY fts.rank LIMIT ?`,
+      args: [query, limit],
+    })
+    return rows.map(r => toEntry(r as Record<string, unknown>))
+  } catch {
+    return []
+  }
+}
+
 export async function createKnowledge(input: KnowledgeEntryInput): Promise<number> {
   const db = await getDb()
   const result = await db.execute({

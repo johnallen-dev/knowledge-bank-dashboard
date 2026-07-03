@@ -1,7 +1,7 @@
 import { getAnthropicClient } from './client'
 import { buildGuestPrompt, buildUserPrompt } from './prompts'
 import { bm25ToConfidence, blendConfidence, type MatchType } from './confidence'
-import { exactMatch, ftsSearch, type KnowledgeEntry } from '@/lib/db/queries/knowledge'
+import { exactMatch, ftsSearch, ftsSearchOr, type KnowledgeEntry } from '@/lib/db/queries/knowledge'
 import { searchNotion } from '@/lib/notion/search'
 import { logQuestion } from '@/lib/db/queries/questions'
 
@@ -34,6 +34,52 @@ const STOPWORDS = new Set([
   'once','and','but','or','nor','so','yet','both','either','neither',
   'not','no','if','because','as','until','while','although','though',
 ])
+
+/** Semantic synonyms for common hotel question vocabulary */
+const SYNONYMS: Record<string, string[]> = {
+  located:    ['address', 'location', 'find', 'situated'],
+  location:   ['address', 'located', 'where', 'find'],
+  address:    ['location', 'located', 'where', 'find'],
+  find:       ['address', 'location', 'located'],
+  cost:       ['price', 'rate', 'fee', 'charge'],
+  price:      ['cost', 'rate', 'fee', 'charge'],
+  fee:        ['cost', 'price', 'rate', 'charge'],
+  charge:     ['cost', 'price', 'rate', 'fee'],
+  rate:       ['cost', 'price', 'fee', 'charge'],
+  hours:      ['schedule', 'time', 'open', 'opening'],
+  open:       ['hours', 'schedule', 'time', 'opening'],
+  schedule:   ['hours', 'time', 'open', 'opening'],
+  breakfast:  ['meal', 'dining', 'food', 'included'],
+  dining:     ['breakfast', 'meal', 'food', 'restaurant'],
+  restaurant: ['dining', 'food', 'meal'],
+  parking:    ['park', 'car', 'vehicle', 'garage'],
+  park:       ['parking', 'car', 'vehicle'],
+  wifi:       ['internet', 'network', 'wireless', 'connection'],
+  internet:   ['wifi', 'network', 'wireless', 'connection'],
+  network:    ['wifi', 'internet', 'wireless'],
+  checkin:    ['arrival', 'arrive', 'arriving', 'check'],
+  checkout:   ['departure', 'leave', 'leaving', 'depart'],
+  arrival:    ['checkin', 'arrive', 'arriving'],
+  departure:  ['checkout', 'leave', 'leaving'],
+  transfer:   ['transport', 'shuttle', 'taxi', 'pickup'],
+  transport:  ['transfer', 'shuttle', 'taxi'],
+  shuttle:    ['transfer', 'transport', 'taxi'],
+  pool:       ['swimming', 'swim'],
+  swimming:   ['pool', 'swim'],
+  gym:        ['fitness', 'exercise', 'sport'],
+  fitness:    ['gym', 'exercise', 'sport'],
+  near:       ['nearby', 'close', 'around'],
+  nearby:     ['near', 'close', 'around'],
+}
+
+/** Expand keywords with their semantic synonyms */
+function expandWithSynonyms(keywords: string[]): string[] {
+  const expanded = new Set(keywords)
+  for (const kw of keywords) {
+    for (const syn of SYNONYMS[kw] ?? []) expanded.add(syn)
+  }
+  return Array.from(expanded)
+}
 
 /** Extract meaningful keywords from a natural-language question */
 function extractKeywords(text: string): string[] {
@@ -103,31 +149,45 @@ export async function runQAPipeline(
     sources.push({ type: 'knowledge_bank', id: exact.id, title: exact.question })
   }
 
-  // ── Step 2a: FTS5 search with the full question text
+  // ── Step 2a: FTS5 AND search with the full question text
   const ftsResults = await ftsSearch(question, 5)
 
-  // ── Step 2b: Keyword fallback — search individual key terms when full-question
-  //    FTS5 finds nothing (handles paraphrased / differently-worded questions)
+  // ── Step 2b: Keyword fallback — fires when full-question AND search finds nothing.
+  //    Uses synonym expansion + OR search to bridge semantic gaps (e.g. "located" vs "address").
   let keywordResults: KnowledgeEntry[] = []
   if (ftsResults.length === 0 && matchType !== 'exact') {
     const keywords = extractKeywords(question)
-    // Search for pairs of keywords together, then singles, stop when we find results
-    for (let i = 0; i < keywords.length - 1 && keywordResults.length === 0; i++) {
-      keywordResults = await ftsSearch(`${keywords[i]} ${keywords[i + 1]}`, 5)
-    }
-    // Still nothing — try each meaningful keyword alone, but skip results whose
-    // top match rank is very weak (likely a coincidental word overlap, e.g. a
-    // property name in the question matching unrelated content in the KB).
+    const expanded = expandWithSynonyms(keywords)
+
+    // First: try OR search across all expanded keywords (catches semantic synonyms)
+    keywordResults = await ftsSearchOr(expanded, 5)
+
+    // Still nothing — try AND pairs of the original keywords
     if (keywordResults.length === 0) {
-      for (const kw of keywords) {
+      for (let i = 0; i < keywords.length - 1 && keywordResults.length === 0; i++) {
+        keywordResults = await ftsSearch(`${keywords[i]} ${keywords[i + 1]}`, 5)
+      }
+    }
+
+    // Still nothing — try single keywords (original + synonyms), filter weak matches
+    if (keywordResults.length === 0) {
+      for (const kw of expanded) {
         const r = await ftsSearch(kw, 3)
-        // Only keep results where the keyword matched with reasonable confidence
         const strong = r.filter(e => e.rank == null || bm25ToConfidence(e.rank) >= 0.45)
         keywordResults.push(...strong)
         if (keywordResults.length >= 5) break
       }
       keywordResults = dedupeById(keywordResults).slice(0, 5)
     }
+  }
+
+  // ── Step 2c: If AND search found results but they may be off-topic, also run
+  //    an OR synonym search and blend — gives Claude more context to work with.
+  if (ftsResults.length > 0 && ftsResults[0].rank != null && bm25ToConfidence(ftsResults[0].rank) < 0.6) {
+    const keywords = extractKeywords(question)
+    const expanded = expandWithSynonyms(keywords)
+    const orResults = await ftsSearchOr(expanded, 5)
+    keywordResults = dedupeById([...ftsResults, ...orResults]).slice(0, 5)
   }
 
   const allFtsResults = dedupeById([...ftsResults, ...keywordResults])
@@ -141,7 +201,7 @@ export async function runQAPipeline(
       matchScore = topConf
       matchedEntryId = top.id
     }
-    for (const r of allFtsResults.slice(0, 3)) {
+    for (const r of allFtsResults.slice(0, 5)) {
       if (!contextParts.find(c => c.includes(`[KB #${r.id}]`))) {
         contextParts.push(`[KB #${r.id}] Q: ${r.question}\nA: ${r.answer}`)
       }
