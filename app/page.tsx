@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { BookOpen, FileText, Headphones, Monitor, Phone, Users, Key, BookMarked, Database } from 'lucide-react'
+import { BookOpen, FileText, Headphones, Monitor, Phone, Users, Key, BookMarked, Database, ClipboardList } from 'lucide-react'
 
 export default function Home() {
   return (
@@ -77,7 +77,7 @@ export default function Home() {
         </div>
 
         {/* Navigation cards — pure CSS hover via Tailwind */}
-        <div className="flex flex-col sm:flex-row gap-5 w-full max-w-md">
+        <div className="flex flex-col sm:flex-row gap-5 w-full max-w-2xl">
 
           <Link
             href="/guest"
@@ -106,6 +106,21 @@ export default function Home() {
             <div className="text-center">
               <p className="font-bold text-lg text-white">Updates</p>
               <p className="text-xs text-white/65 mt-1.5 leading-relaxed">Documents &amp; team exams</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/qa-report"
+            className="flex-1 flex flex-col items-center gap-4 rounded-2xl p-8 border border-white/10 transition-all duration-300 hover:border-teal-400/40 hover:bg-white/10 shadow-xl"
+            style={{ background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(16px)' }}
+          >
+            <div className="h-14 w-14 rounded-xl flex items-center justify-center border border-teal-400/20 transition-colors hover:border-teal-400/50"
+              style={{ background: 'rgba(45,212,191,0.15)' }}>
+              <ClipboardList className="h-7 w-7 text-teal-400" />
+            </div>
+            <div className="text-center">
+              <p className="font-bold text-lg text-white">QA Report</p>
+              <p className="text-xs text-white/65 mt-1.5 leading-relaxed">Audits, feedback &amp; performance</p>
             </div>
           </Link>
         </div>
