@@ -8,10 +8,12 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { EXAMINEES } from '@/lib/updates/examinees'
 import { StarRating } from './StarRating'
+import type { RecordType } from '@/lib/qaReport/types'
 
 const EMPTY_FORM = {
   date: '',
   agentName: '',
+  recordType: 'normal' as RecordType,
   qaFeedback: '',
   personalImprovementPlan: '',
   qaExperienceRating: 0,
@@ -86,6 +88,19 @@ export function AgentPortalForm() {
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Type of Audit *</Label>
+        <Select value={form.recordType} onValueChange={v => set('recordType', v as RecordType)}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="normal">Normal Audit</SelectItem>
+            <SelectItem value="escalation">Escalation Audit</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-2">

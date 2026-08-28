@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation'
 import {
   MessageSquare, Database, PlusCircle, Tag,
   BarChart3, Settings, Home, Upload, FileText, ClipboardList, Key, Link2, Bot,
-  ClipboardCheck, UserCog, FileBarChart, Users, LayoutDashboard,
+  ClipboardCheck, UserCog, FileBarChart, Users, LayoutDashboard, ShieldAlert,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -26,6 +26,7 @@ const NAV: { href: string; label: string; icon: React.ElementType; section: NavS
   { href: '/qa-report/qa-audit-report',        label: 'QA Report',      icon: FileBarChart,   section: 'qaReport', exact: true },
   { href: '/qa-report/agent-feedback-report',  label: 'Agent Report',   icon: Users,          section: 'qaReport', exact: true },
   { href: '/qa-report/overall-report',         label: 'Overall Report', icon: LayoutDashboard, section: 'qaReport', exact: true },
+  { href: '/qa-report/escalation-report',      label: 'Escalation Report', icon: ShieldAlert, section: 'qaReport', exact: true },
   { href: '/claude',                 label: 'Claude AI',          icon: Bot,           section: 'claude', exact: true },
   { href: '/analytics',              label: 'Analytics',          icon: BarChart3,     section: 'system', exact: true },
   { href: '/settings',               label: 'Settings',           icon: Settings,      section: 'system', exact: true },

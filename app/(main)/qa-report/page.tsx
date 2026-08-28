@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ClipboardCheck, UserCog, FileBarChart, Users, LayoutDashboard, ClipboardList } from 'lucide-react'
+import { ClipboardCheck, UserCog, FileBarChart, Users, LayoutDashboard, ClipboardList, ShieldAlert } from 'lucide-react'
 
 const LINKS = [
   { href: '/qa-report/qa-portal', label: 'QA Portal', icon: ClipboardCheck, description: 'Record and submit QA audits for agents' },
@@ -7,6 +7,7 @@ const LINKS = [
   { href: '/qa-report/qa-audit-report', label: 'QA Report', icon: FileBarChart, description: 'View QA performance and AI-powered analysis' },
   { href: '/qa-report/agent-feedback-report', label: 'Agent Report', icon: Users, description: 'View agent feedback and improvement plans' },
   { href: '/qa-report/overall-report', label: 'Overall Report', icon: LayoutDashboard, description: 'Combined QA performance and agent feedback' },
+  { href: '/qa-report/escalation-report', label: 'Escalation Report', icon: ShieldAlert, description: 'Combined escalation audits and agent responses' },
 ]
 
 export default function QaReportPage() {

@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
       agentNames?: string[]
     }
 
-    const audits = await listQaAudits({ startDate, endDate, agentNames })
+    const audits = await listQaAudits({ startDate, endDate, agentNames, recordType: 'normal' })
     const analysis = await generateQaAnalysis(audits)
 
     return NextResponse.json({ analysis, auditCount: audits.length })

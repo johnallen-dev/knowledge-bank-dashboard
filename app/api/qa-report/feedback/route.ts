@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { listAgentFeedback, upsertAgentFeedback } from '@/lib/db/queries/qaReports'
+import type { RecordType } from '@/lib/qaReport/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,6 +12,7 @@ export async function GET(req: NextRequest) {
       startDate: searchParams.get('startDate') ?? undefined,
       endDate: searchParams.get('endDate') ?? undefined,
       agentNames: agents ? agents.split(',').filter(Boolean) : undefined,
+      recordType: (searchParams.get('recordType') as RecordType) ?? 'normal',
     })
     return NextResponse.json({ feedback })
   } catch (err) {
@@ -22,7 +24,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { date, agentName, qaFeedback, personalImprovementPlan, qaExperienceRating } = body
+    const { date, agentName, recordType, qaFeedback, personalImprovementPlan, qaExperienceRating } = body
 
     if (!date || !agentName?.trim()) {
       return NextResponse.json({ error: 'Date and agent name are required' }, { status: 400 })
@@ -31,6 +33,7 @@ export async function POST(req: NextRequest) {
     const uniqueId = await upsertAgentFeedback({
       feedback_date: date,
       agent_name: agentName.trim(),
+      record_type: (recordType as RecordType) ?? 'normal',
       qa_feedback: qaFeedback ?? '',
       personal_improvement_plan: personalImprovementPlan ?? '',
       qa_experience_rating: qaExperienceRating == null ? null : Number(qaExperienceRating),

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { listQaAudits, upsertQaAudit } from '@/lib/db/queries/qaReports'
-import type { AuditType } from '@/lib/qaReport/types'
+import type { AuditType, RecordType } from '@/lib/qaReport/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,6 +13,7 @@ export async function GET(req: NextRequest) {
       endDate: searchParams.get('endDate') ?? undefined,
       agentNames: agents ? agents.split(',').filter(Boolean) : undefined,
       auditType: (searchParams.get('auditType') as AuditType) ?? undefined,
+      recordType: (searchParams.get('recordType') as RecordType) ?? 'normal',
     })
     return NextResponse.json({ audits })
   } catch (err) {
@@ -24,7 +25,11 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { date, agentName, chatEmailScore, callScore, chatEmailSummary, callSummary, remarks } = body
+    const {
+      date, agentName, recordType,
+      chatEmailScore, callScore, chatEmailSummary, callSummary,
+      escalationScore, escalationSummary, remarks,
+    } = body
 
     if (!date || !agentName?.trim()) {
       return NextResponse.json({ error: 'Date and agent name are required' }, { status: 400 })
@@ -33,10 +38,13 @@ export async function POST(req: NextRequest) {
     const uniqueId = await upsertQaAudit({
       audit_date: date,
       agent_name: agentName.trim(),
+      record_type: (recordType as RecordType) ?? 'normal',
       chat_email_score: chatEmailScore === '' || chatEmailScore == null ? null : Number(chatEmailScore),
       call_score: callScore === '' || callScore == null ? null : Number(callScore),
       chat_email_summary: chatEmailSummary ?? '',
       call_summary: callSummary ?? '',
+      escalation_score: escalationScore === '' || escalationScore == null ? null : Number(escalationScore),
+      escalation_summary: escalationSummary ?? '',
       remarks: remarks ?? '',
     })
 

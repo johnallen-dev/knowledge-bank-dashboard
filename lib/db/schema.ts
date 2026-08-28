@@ -177,6 +177,11 @@ export async function runMigrations(db: Client): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_agent_fb_agent  ON agent_feedback(agent_name);
   `)
 
+  // Migrate qa_audits/agent_feedback to support Normal + Escalation records that share
+  // the same Unique ID (unique_id alone can no longer be the primary key — a Normal and
+  // an Escalation audit for the same agent/date now must coexist instead of overwriting).
+  await migrateQaReportRecordType(db)
+
   await seedCategories(db)
 }
 
@@ -194,6 +199,67 @@ const DEFAULT_CATEGORIES = [
   { name: 'Guest Communication', slug: 'guest-communication', color: '#14b8a6', icon: 'MessageSquare' },
   { name: 'Internal Procedures', slug: 'internal-procedures', color: '#78716c', icon: 'FileText' },
 ]
+
+async function migrateQaReportRecordType(db: Client): Promise<void> {
+  const info = await db.execute('PRAGMA table_info(qa_audits)')
+  const hasRecordType = info.rows.some(r => String((r as Record<string, unknown>).name) === 'record_type')
+  if (hasRecordType) return
+
+  await db.executeMultiple(`
+    ALTER TABLE qa_audits RENAME TO qa_audits_old;
+
+    CREATE TABLE qa_audits (
+      unique_id          TEXT NOT NULL,
+      record_type        TEXT NOT NULL DEFAULT 'normal',
+      audit_date         TEXT NOT NULL,
+      agent_name         TEXT NOT NULL,
+      chat_email_score   REAL,
+      call_score         REAL,
+      chat_email_summary TEXT,
+      call_summary       TEXT,
+      escalation_score   INTEGER,
+      escalation_summary TEXT,
+      remarks            TEXT,
+      created_at         TEXT DEFAULT (datetime('now')),
+      updated_at         TEXT DEFAULT (datetime('now')),
+      UNIQUE(unique_id, record_type)
+    );
+
+    INSERT INTO qa_audits
+      (unique_id, record_type, audit_date, agent_name, chat_email_score, call_score, chat_email_summary, call_summary, remarks, created_at, updated_at)
+      SELECT unique_id, 'normal', audit_date, agent_name, chat_email_score, call_score, chat_email_summary, call_summary, remarks, created_at, updated_at
+      FROM qa_audits_old;
+
+    DROP TABLE qa_audits_old;
+
+    ALTER TABLE agent_feedback RENAME TO agent_feedback_old;
+
+    CREATE TABLE agent_feedback (
+      unique_id                 TEXT NOT NULL,
+      record_type               TEXT NOT NULL DEFAULT 'normal',
+      feedback_date              TEXT NOT NULL,
+      agent_name                TEXT NOT NULL,
+      qa_feedback                TEXT,
+      personal_improvement_plan TEXT,
+      qa_experience_rating      INTEGER,
+      created_at                 TEXT DEFAULT (datetime('now')),
+      updated_at                 TEXT DEFAULT (datetime('now')),
+      UNIQUE(unique_id, record_type)
+    );
+
+    INSERT INTO agent_feedback
+      (unique_id, record_type, feedback_date, agent_name, qa_feedback, personal_improvement_plan, qa_experience_rating, created_at, updated_at)
+      SELECT unique_id, 'normal', feedback_date, agent_name, qa_feedback, personal_improvement_plan, qa_experience_rating, created_at, updated_at
+      FROM agent_feedback_old;
+
+    DROP TABLE agent_feedback_old;
+
+    CREATE INDEX IF NOT EXISTS idx_qa_audits_date  ON qa_audits(audit_date);
+    CREATE INDEX IF NOT EXISTS idx_qa_audits_agent ON qa_audits(agent_name);
+    CREATE INDEX IF NOT EXISTS idx_agent_fb_date   ON agent_feedback(feedback_date);
+    CREATE INDEX IF NOT EXISTS idx_agent_fb_agent  ON agent_feedback(agent_name);
+  `)
+}
 
 async function seedCategories(db: Client): Promise<void> {
   const { rows } = await db.execute('SELECT COUNT(*) as c FROM categories')
