@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { listAgentFeedback, upsertAgentFeedback } from '@/lib/db/queries/qaReports'
+import { listAgentFeedback, upsertAgentFeedback, deleteAgentFeedback } from '@/lib/db/queries/qaReports'
 import type { RecordType } from '@/lib/qaReport/types'
+import { isValidQaReportPassword } from '@/lib/qaReport/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,5 +44,26 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error('[POST /api/qa-report/feedback]', err)
     return NextResponse.json({ error: 'Failed to submit agent feedback' }, { status: 500 })
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  const authHeader = req.headers.get('authorization') ?? ''
+  const password = authHeader.replace(/^Bearer\s+/i, '')
+  if (!isValidQaReportPassword(password)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  try {
+    const { searchParams } = new URL(req.url)
+    const uniqueId = searchParams.get('uniqueId')
+    const recordType = (searchParams.get('recordType') as RecordType) ?? 'normal'
+    if (!uniqueId) {
+      return NextResponse.json({ error: 'uniqueId is required' }, { status: 400 })
+    }
+    await deleteAgentFeedback(uniqueId, recordType)
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    console.error('[DELETE /api/qa-report/feedback]', err)
+    return NextResponse.json({ error: 'Failed to delete agent feedback' }, { status: 500 })
   }
 }

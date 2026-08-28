@@ -39,6 +39,7 @@ export interface EscalationReportRow {
   escalation_summary: string
   qa_feedback: string
   personal_improvement_plan: string
+  qa_experience_rating: number | null
   has_qa: boolean
   has_feedback: boolean
 }

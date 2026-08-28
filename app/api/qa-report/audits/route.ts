@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { listQaAudits, upsertQaAudit } from '@/lib/db/queries/qaReports'
+import { listQaAudits, upsertQaAudit, deleteQaAudit } from '@/lib/db/queries/qaReports'
 import type { AuditType, RecordType } from '@/lib/qaReport/types'
+import { isValidQaReportPassword } from '@/lib/qaReport/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -52,5 +53,26 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error('[POST /api/qa-report/audits]', err)
     return NextResponse.json({ error: 'Failed to submit QA audit' }, { status: 500 })
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  const authHeader = req.headers.get('authorization') ?? ''
+  const password = authHeader.replace(/^Bearer\s+/i, '')
+  if (!isValidQaReportPassword(password)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  try {
+    const { searchParams } = new URL(req.url)
+    const uniqueId = searchParams.get('uniqueId')
+    const recordType = (searchParams.get('recordType') as RecordType) ?? 'normal'
+    if (!uniqueId) {
+      return NextResponse.json({ error: 'uniqueId is required' }, { status: 400 })
+    }
+    await deleteQaAudit(uniqueId, recordType)
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    console.error('[DELETE /api/qa-report/audits]', err)
+    return NextResponse.json({ error: 'Failed to delete QA audit' }, { status: 500 })
   }
 }

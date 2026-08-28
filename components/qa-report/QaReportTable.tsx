@@ -6,7 +6,9 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { MultiAgentSelect } from './MultiAgentSelect'
 import { AiAnalysisPanel } from './AiAnalysisPanel'
+import { DeleteRecordButton } from './DeleteRecordButton'
 import { EXAMINEES } from '@/lib/updates/examinees'
+import { qaReportAuthHeader } from '@/lib/qaReport/auth'
 import type { QaAudit, AuditType } from '@/lib/qaReport/types'
 
 export function QaReportTable() {
@@ -84,7 +86,7 @@ export function QaReportTable() {
                     'Date', 'Agent',
                     ...(showChatEmail ? ['Chat/Email Score', 'Chat/Email Summary'] : []),
                     ...(showCall ? ['Call Score', 'Call Summary'] : []),
-                    'Remarks', 'Unique ID',
+                    'Remarks', 'Unique ID', '',
                   ].map(h => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">{h}</th>
                   ))}
@@ -113,6 +115,23 @@ export function QaReportTable() {
                     )}
                     <td className="px-4 py-3 max-w-xs text-muted-foreground">{a.remarks || '—'}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-xs text-muted-foreground font-mono">{a.unique_id}</td>
+                    <td className="px-4 py-3 text-right">
+                      <DeleteRecordButton
+                        recordLabel={`${a.agent_name} — ${a.audit_date}`}
+                        targets={[{
+                          key: 'qa',
+                          label: 'QA Portal entry',
+                          onDelete: async () => {
+                            const res = await fetch(`/api/qa-report/audits?uniqueId=${encodeURIComponent(a.unique_id)}&recordType=normal`, {
+                              method: 'DELETE',
+                              headers: qaReportAuthHeader(),
+                            })
+                            if (!res.ok) throw new Error('Delete failed')
+                          },
+                        }]}
+                        onDeleted={fetchAudits}
+                      />
+                    </td>
                   </tr>
                 ))}
               </tbody>

@@ -5,8 +5,41 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { MultiAgentSelect } from './MultiAgentSelect'
 import { StarRating } from './StarRating'
+import { DeleteRecordButton, type DeleteTarget } from './DeleteRecordButton'
 import { EXAMINEES } from '@/lib/updates/examinees'
+import { qaReportAuthHeader } from '@/lib/qaReport/auth'
 import type { OverallReportRow } from '@/lib/qaReport/types'
+
+function buildDeleteTargets(row: OverallReportRow): DeleteTarget[] {
+  const targets: DeleteTarget[] = []
+  if (row.has_qa) {
+    targets.push({
+      key: 'qa',
+      label: 'QA Portal entry',
+      onDelete: async () => {
+        const res = await fetch(`/api/qa-report/audits?uniqueId=${encodeURIComponent(row.unique_id)}&recordType=normal`, {
+          method: 'DELETE',
+          headers: qaReportAuthHeader(),
+        })
+        if (!res.ok) throw new Error('Delete failed')
+      },
+    })
+  }
+  if (row.has_feedback) {
+    targets.push({
+      key: 'feedback',
+      label: 'Agent Portal entry',
+      onDelete: async () => {
+        const res = await fetch(`/api/qa-report/feedback?uniqueId=${encodeURIComponent(row.unique_id)}&recordType=normal`, {
+          method: 'DELETE',
+          headers: qaReportAuthHeader(),
+        })
+        if (!res.ok) throw new Error('Delete failed')
+      },
+    })
+  }
+  return targets
+}
 
 export function OverallReportTable() {
   const [startDate, setStartDate] = useState('')
@@ -61,7 +94,7 @@ export function OverallReportTable() {
             <table className="w-full text-sm">
               <thead className="bg-muted/50 border-b">
                 <tr>
-                  {['Date', 'Agent', 'Chat/Email Score', 'Call Score', 'QA Rating', 'Status', 'Unique ID'].map(h => (
+                  {['Date', 'Agent', 'Chat/Email Score', 'Call Score', 'QA Rating', 'Status', 'Unique ID', ''].map(h => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">{h}</th>
                   ))}
                 </tr>
@@ -86,6 +119,13 @@ export function OverallReportTable() {
                       )}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-xs text-muted-foreground font-mono">{r.unique_id}</td>
+                    <td className="px-4 py-3 text-right">
+                      <DeleteRecordButton
+                        recordLabel={`${r.agent_name} — ${r.date}`}
+                        targets={buildDeleteTargets(r)}
+                        onDeleted={fetchRows}
+                      />
+                    </td>
                   </tr>
                 ))}
               </tbody>

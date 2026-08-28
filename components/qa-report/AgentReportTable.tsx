@@ -4,7 +4,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { MultiAgentSelect } from './MultiAgentSelect'
 import { StarRating } from './StarRating'
+import { DeleteRecordButton } from './DeleteRecordButton'
 import { EXAMINEES } from '@/lib/updates/examinees'
+import { qaReportAuthHeader } from '@/lib/qaReport/auth'
 import type { AgentFeedback } from '@/lib/qaReport/types'
 
 export function AgentReportTable() {
@@ -60,7 +62,7 @@ export function AgentReportTable() {
             <table className="w-full text-sm">
               <thead className="bg-muted/50 border-b">
                 <tr>
-                  {['Date', 'Agent', 'QA Feedback', 'Improvement Plan', 'Rating', 'Unique ID'].map(h => (
+                  {['Date', 'Agent', 'QA Feedback', 'Improvement Plan', 'Rating', 'Unique ID', ''].map(h => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">{h}</th>
                   ))}
                 </tr>
@@ -76,6 +78,23 @@ export function AgentReportTable() {
                       <StarRating value={f.qa_experience_rating ?? 0} readOnly size={14} />
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-xs text-muted-foreground font-mono">{f.unique_id}</td>
+                    <td className="px-4 py-3 text-right">
+                      <DeleteRecordButton
+                        recordLabel={`${f.agent_name} — ${f.feedback_date}`}
+                        targets={[{
+                          key: 'feedback',
+                          label: 'Agent Portal entry',
+                          onDelete: async () => {
+                            const res = await fetch(`/api/qa-report/feedback?uniqueId=${encodeURIComponent(f.unique_id)}&recordType=normal`, {
+                              method: 'DELETE',
+                              headers: qaReportAuthHeader(),
+                            })
+                            if (!res.ok) throw new Error('Delete failed')
+                          },
+                        }]}
+                        onDeleted={fetchFeedback}
+                      />
+                    </td>
                   </tr>
                 ))}
               </tbody>

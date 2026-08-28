@@ -212,6 +212,24 @@ export async function getOverallReport(filter?: {
   return Array.from(rowsById.values()).sort((a, b) => b.date.localeCompare(a.date) || a.agent_name.localeCompare(b.agent_name))
 }
 
+// ── Delete ────────────────────────────────────────────────────────────────────
+
+export async function deleteQaAudit(uniqueId: string, recordType: RecordType): Promise<void> {
+  const db = await getDb()
+  await db.execute({
+    sql: 'DELETE FROM qa_audits WHERE unique_id = ? AND record_type = ?',
+    args: [uniqueId, recordType],
+  })
+}
+
+export async function deleteAgentFeedback(uniqueId: string, recordType: RecordType): Promise<void> {
+  const db = await getDb()
+  await db.execute({
+    sql: 'DELETE FROM agent_feedback WHERE unique_id = ? AND record_type = ?',
+    args: [uniqueId, recordType],
+  })
+}
+
 // ── Escalation report (Escalation records merged by unique_id) ───────────────
 
 export async function getEscalationReport(filter?: {
@@ -235,6 +253,7 @@ export async function getEscalationReport(filter?: {
       escalation_summary: a.escalation_summary,
       qa_feedback: '',
       personal_improvement_plan: '',
+      qa_experience_rating: null,
       has_qa: true,
       has_feedback: false,
     })
@@ -245,6 +264,7 @@ export async function getEscalationReport(filter?: {
     if (existing) {
       existing.qa_feedback = f.qa_feedback
       existing.personal_improvement_plan = f.personal_improvement_plan
+      existing.qa_experience_rating = f.qa_experience_rating
       existing.has_feedback = true
     } else {
       rowsById.set(f.unique_id, {
@@ -255,6 +275,7 @@ export async function getEscalationReport(filter?: {
         escalation_summary: '',
         qa_feedback: f.qa_feedback,
         personal_improvement_plan: f.personal_improvement_plan,
+        qa_experience_rating: f.qa_experience_rating,
         has_qa: false,
         has_feedback: true,
       })
