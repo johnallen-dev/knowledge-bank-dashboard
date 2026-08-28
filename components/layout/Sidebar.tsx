@@ -4,10 +4,11 @@ import { usePathname } from 'next/navigation'
 import {
   MessageSquare, Database, PlusCircle, Tag,
   BarChart3, Settings, Home, Upload, FileText, ClipboardList, Key, Link2, Bot,
+  ClipboardCheck, UserCog, FileBarChart, Users, LayoutDashboard,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-type NavSection = 'sections' | 'knowledge' | 'updates' | 'claude' | 'system'
+type NavSection = 'sections' | 'knowledge' | 'updates' | 'qaReport' | 'claude' | 'system'
 
 const NAV: { href: string; label: string; icon: React.ElementType; section: NavSection; exact?: boolean }[] = [
   { href: '/guest',                  label: 'Guest Section',      icon: Home,          section: 'sections', exact: true },
@@ -20,6 +21,11 @@ const NAV: { href: string; label: string; icon: React.ElementType; section: NavS
   { href: '/updates/results',        label: 'Exam Results',       icon: ClipboardList, section: 'updates', exact: true },
   { href: '/updates/analytics',      label: 'Analytics',          icon: BarChart3,     section: 'updates', exact: true },
   { href: '/updates/links',          label: 'Exam Links',         icon: Link2,         section: 'updates', exact: true },
+  { href: '/qa-report/qa-portal',              label: 'QA Portal',      icon: ClipboardCheck, section: 'qaReport', exact: true },
+  { href: '/qa-report/agent-portal',           label: 'Agent Portal',   icon: UserCog,        section: 'qaReport', exact: true },
+  { href: '/qa-report/qa-audit-report',        label: 'QA Report',      icon: FileBarChart,   section: 'qaReport', exact: true },
+  { href: '/qa-report/agent-feedback-report',  label: 'Agent Report',   icon: Users,          section: 'qaReport', exact: true },
+  { href: '/qa-report/overall-report',         label: 'Overall Report', icon: LayoutDashboard, section: 'qaReport', exact: true },
   { href: '/claude',                 label: 'Claude AI',          icon: Bot,           section: 'claude', exact: true },
   { href: '/analytics',              label: 'Analytics',          icon: BarChart3,     section: 'system', exact: true },
   { href: '/settings',               label: 'Settings',           icon: Settings,      section: 'system', exact: true },
@@ -29,13 +35,14 @@ const SECTION_LABELS: Record<NavSection, string> = {
   sections: 'Sections',
   knowledge: 'Knowledge',
   updates: 'Updates',
+  qaReport: 'QA Report',
   claude: 'Claude AI',
   system: 'System',
 }
 
 export function Sidebar() {
   const pathname = usePathname()
-  const sections: NavSection[] = ['sections', 'knowledge', 'updates', 'claude', 'system']
+  const sections: NavSection[] = ['sections', 'knowledge', 'updates', 'qaReport', 'claude', 'system']
 
   return (
     <aside className="w-64 shrink-0 flex flex-col h-full" style={{ background: 'linear-gradient(180deg, #052e16 0%, #14532d 100%)' }}>
@@ -61,6 +68,8 @@ export function Sidebar() {
         {sections.map((section, si) => {
           if (pathname.startsWith('/updates') && section !== 'updates' && section !== 'claude') return null
           if (!pathname.startsWith('/updates') && section === 'updates') return null
+          if (pathname.startsWith('/qa-report') && section !== 'qaReport') return null
+          if (!pathname.startsWith('/qa-report') && section === 'qaReport') return null
           const items = NAV.filter(n => n.section === section)
           return (
             <div key={section} className={si > 0 ? 'pt-1' : undefined}>
@@ -80,7 +89,7 @@ export function Sidebar() {
 
       {/* Section indicator — only shown on Knowledge Bank pages */}
       <div className="border-t border-green-800/60 px-4 py-4">
-        {!pathname.startsWith('/updates') && (
+        {!pathname.startsWith('/updates') && !pathname.startsWith('/qa-report') && (
           <div className="flex gap-1.5">
             <Link
               href="/guest"

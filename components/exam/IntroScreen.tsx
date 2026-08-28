@@ -5,21 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ClipboardList } from 'lucide-react'
-
-const EXAMINEES = [
-  'Sherilyn Susaya',
-  'Jenuel Advincula',
-  'John Carlo Susaya',
-  'Inah Astrera',
-  'Aaron Chico',
-  'Deniece Valeza',
-  'Elizabeth Antonio',
-  'Patrick Tuazon',
-  'Justine Marquez',
-  'Gia Saclausa',
-  'Cherie Josie Serafin',
-  'John Allen Astrera',
-]
+import { EXAMINEES } from '@/lib/updates/examinees'
 
 interface Props {
   questionCount: number

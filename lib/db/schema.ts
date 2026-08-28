@@ -145,6 +145,38 @@ export async function runMigrations(db: Client): Promise<void> {
     await db.execute('ALTER TABLE exam_attempts ADD COLUMN duration_seconds INTEGER DEFAULT 0')
   } catch { /* column already exists */ }
 
+  // ── QA Report Module ──────────────────────────────────────────────────────────
+  await db.executeMultiple(`
+    CREATE TABLE IF NOT EXISTS qa_audits (
+      unique_id          TEXT PRIMARY KEY,
+      audit_date         TEXT NOT NULL,
+      agent_name         TEXT NOT NULL,
+      chat_email_score   REAL,
+      call_score         REAL,
+      chat_email_summary TEXT,
+      call_summary       TEXT,
+      remarks            TEXT,
+      created_at         TEXT DEFAULT (datetime('now')),
+      updated_at         TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS agent_feedback (
+      unique_id                 TEXT PRIMARY KEY,
+      feedback_date             TEXT NOT NULL,
+      agent_name                TEXT NOT NULL,
+      qa_feedback               TEXT,
+      personal_improvement_plan TEXT,
+      qa_experience_rating      INTEGER,
+      created_at                TEXT DEFAULT (datetime('now')),
+      updated_at                TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_qa_audits_date  ON qa_audits(audit_date);
+    CREATE INDEX IF NOT EXISTS idx_qa_audits_agent ON qa_audits(agent_name);
+    CREATE INDEX IF NOT EXISTS idx_agent_fb_date   ON agent_feedback(feedback_date);
+    CREATE INDEX IF NOT EXISTS idx_agent_fb_agent  ON agent_feedback(agent_name);
+  `)
+
   await seedCategories(db)
 }
 
