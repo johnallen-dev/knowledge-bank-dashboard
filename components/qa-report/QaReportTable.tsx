@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { MultiAgentSelect } from './MultiAgentSelect'
 import { AiAnalysisPanel } from './AiAnalysisPanel'
 import { DeleteRecordButton } from './DeleteRecordButton'
+import { ExpandableText } from './ExpandableText'
 import { EXAMINEES } from '@/lib/updates/examinees'
 import { qaReportAuthHeader } from '@/lib/qaReport/auth'
 import type { QaAudit, AuditType } from '@/lib/qaReport/types'
@@ -102,7 +103,7 @@ export function QaReportTable() {
                         <td className="px-4 py-3">
                           {a.chat_email_score != null ? <Badge variant={a.chat_email_score >= 70 ? 'success' : 'danger'}>{a.chat_email_score}</Badge> : '—'}
                         </td>
-                        <td className="px-4 py-3 max-w-xs text-muted-foreground">{a.chat_email_summary || '—'}</td>
+                        <td className="px-4 py-3 max-w-xs text-muted-foreground"><ExpandableText text={a.chat_email_summary} /></td>
                       </>
                     )}
                     {showCall && (
@@ -110,10 +111,10 @@ export function QaReportTable() {
                         <td className="px-4 py-3">
                           {a.call_score != null ? <Badge variant={a.call_score >= 70 ? 'success' : 'danger'}>{a.call_score}</Badge> : '—'}
                         </td>
-                        <td className="px-4 py-3 max-w-xs text-muted-foreground">{a.call_summary || '—'}</td>
+                        <td className="px-4 py-3 max-w-xs text-muted-foreground"><ExpandableText text={a.call_summary} /></td>
                       </>
                     )}
-                    <td className="px-4 py-3 max-w-xs text-muted-foreground">{a.remarks || '—'}</td>
+                    <td className="px-4 py-3 max-w-xs text-muted-foreground"><ExpandableText text={a.remarks} /></td>
                     <td className="px-4 py-3 whitespace-nowrap text-xs text-muted-foreground font-mono">{a.unique_id}</td>
                     <td className="px-4 py-3 text-right">
                       <DeleteRecordButton
