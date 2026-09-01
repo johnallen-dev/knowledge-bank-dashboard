@@ -29,7 +29,6 @@ export function QaPortalForm() {
   const [saving, setSaving] = useState(false)
   const [lastUniqueId, setLastUniqueId] = useState('')
 
-  const today = new Date().toISOString().split('T')[0]
   const isEscalation = form.recordType === 'escalation'
 
   function set(key: keyof typeof EMPTY_FORM, value: string) {
@@ -76,7 +75,6 @@ export function QaPortalForm() {
             id="date"
             type="date"
             value={form.date}
-            max={today}
             onChange={e => set('date', e.target.value)}
             required
           />

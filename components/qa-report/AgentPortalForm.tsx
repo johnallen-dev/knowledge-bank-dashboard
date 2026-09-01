@@ -24,8 +24,6 @@ export function AgentPortalForm() {
   const [saving, setSaving] = useState(false)
   const [lastUniqueId, setLastUniqueId] = useState('')
 
-  const today = new Date().toISOString().split('T')[0]
-
   function set<K extends keyof typeof EMPTY_FORM>(key: K, value: typeof EMPTY_FORM[K]) {
     setForm(prev => ({ ...prev, [key]: value }))
   }
@@ -70,7 +68,6 @@ export function AgentPortalForm() {
             id="date"
             type="date"
             value={form.date}
-            max={today}
             onChange={e => set('date', e.target.value)}
             required
           />
