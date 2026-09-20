@@ -52,15 +52,26 @@ export async function generateQaAnalysis(audits: QaAudit[]): Promise<AiAnalysisR
   const prompt = buildPrompt(audits)
   const response = await getAnthropicClient().messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 2048,
+    max_tokens: 8192,
     messages: [{ role: 'user', content: prompt }],
   })
 
   const text = response.content[0].type === 'text' ? response.content[0].text : ''
+
+  if (response.stop_reason === 'max_tokens') {
+    throw new Error('The AI analysis was too large to complete for this many records. Try narrowing the date range or selecting fewer agents.')
+  }
+
   const jsonMatch = text.match(/\{[\s\S]*\}/)
   if (!jsonMatch) throw new Error('AI response did not contain JSON')
 
-  const parsed = JSON.parse(jsonMatch[0])
+  let parsed: { chatEmail?: Partial<AiAnalysisSection>; call?: Partial<AiAnalysisSection>; overall?: Partial<AiAnalysisSection> }
+  try {
+    parsed = JSON.parse(jsonMatch[0])
+  } catch {
+    throw new Error('The AI analysis response was malformed. Please try again, narrowing the filters if the problem persists.')
+  }
+
   return {
     chatEmail: { ...EMPTY_SECTION, ...parsed.chatEmail },
     call: { ...EMPTY_SECTION, ...parsed.call },

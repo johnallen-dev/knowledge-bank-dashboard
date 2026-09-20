@@ -55,14 +55,14 @@ export function AiAnalysisPanel({ startDate, endDate, agentNames }: AiAnalysisPa
         body: JSON.stringify({ startDate, endDate, agentNames }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error)
+      if (!res.ok) throw new Error(data.error || 'Failed to generate AI analysis')
       if (data.auditCount === 0) {
         toast.error('No QA audits match the selected filters')
         return
       }
       setResult(data.analysis)
-    } catch {
-      toast.error('Failed to generate AI analysis')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to generate AI analysis')
     } finally {
       setLoading(false)
     }

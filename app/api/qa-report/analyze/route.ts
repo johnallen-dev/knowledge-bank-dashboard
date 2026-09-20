@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ analysis, auditCount: audits.length })
   } catch (err) {
     console.error('[POST /api/qa-report/analyze]', err)
-    return NextResponse.json({ error: 'Failed to generate AI analysis' }, { status: 500 })
+    const message = err instanceof Error ? err.message : 'Failed to generate AI analysis'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
