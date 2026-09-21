@@ -5,7 +5,7 @@ import {
   MessageSquare, Database, PlusCircle, Tag,
   BarChart3, Settings, Home, Upload, FileText, ClipboardList, Key, Link2, Bot,
   ClipboardCheck, UserCog, FileBarChart, Users, LayoutDashboard, ShieldAlert,
-  Newspaper,
+  Newspaper, FolderOpen,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -28,7 +28,8 @@ const NAV: { href: string; label: string; icon: React.ElementType; section: NavS
   { href: '/qa-report/agent-feedback-report',  label: 'Agent Report',   icon: Users,          section: 'qaReport', exact: true },
   { href: '/qa-report/overall-report',         label: 'Overall Report', icon: LayoutDashboard, section: 'qaReport', exact: true },
   { href: '/qa-report/escalation-report',      label: 'Escalation Report', icon: ShieldAlert, section: 'qaReport', exact: true },
-  { href: '/process-newspaper',      label: 'Process Newspaper',  icon: Newspaper,     section: 'newspaper', exact: true },
+  { href: '/process-newspaper',          label: 'Newspaper', icon: Newspaper,  section: 'newspaper', exact: true },
+  { href: '/process-newspaper/contents', label: 'Contents',  icon: FolderOpen, section: 'newspaper', exact: true },
   { href: '/claude',                 label: 'Claude AI',          icon: Bot,           section: 'claude', exact: true },
   { href: '/analytics',              label: 'Analytics',          icon: BarChart3,     section: 'system', exact: true },
   { href: '/settings',               label: 'Settings',           icon: Settings,      section: 'system', exact: true },
@@ -74,6 +75,8 @@ export function Sidebar() {
           if (!pathname.startsWith('/updates') && section === 'updates') return null
           if (pathname.startsWith('/qa-report') && section !== 'qaReport') return null
           if (!pathname.startsWith('/qa-report') && section === 'qaReport') return null
+          if (pathname.startsWith('/process-newspaper') && section !== 'newspaper') return null
+          if (!pathname.startsWith('/process-newspaper') && section === 'newspaper') return null
           const items = NAV.filter(n => n.section === section)
           return (
             <div key={section} className={si > 0 ? 'pt-1' : undefined}>
