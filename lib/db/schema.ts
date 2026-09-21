@@ -182,6 +182,39 @@ export async function runMigrations(db: Client): Promise<void> {
   // an Escalation audit for the same agent/date now must coexist instead of overwriting).
   await migrateQaReportRecordType(db)
 
+  // ── Process Newspaper Module ──────────────────────────────────────────────────
+  await db.executeMultiple(`
+    CREATE TABLE IF NOT EXISTS newspaper_processes (
+      id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+      uuid               TEXT NOT NULL UNIQUE DEFAULT (lower(hex(randomblob(16)))),
+      category           TEXT NOT NULL,
+      title              TEXT NOT NULL,
+      content_html       TEXT NOT NULL,
+      duration_type      TEXT NOT NULL,
+      duration_start     TEXT,
+      duration_end       TEXT,
+      duration_note      TEXT,
+      special_note       TEXT,
+      is_disabled        INTEGER NOT NULL DEFAULT 0,
+      featured_in_cycle  INTEGER NOT NULL DEFAULT 0,
+      last_headline_at   TEXT,
+      last_supporting_at TEXT,
+      created_at         TEXT DEFAULT (datetime('now')),
+      updated_at         TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS newspaper_editions (
+      edition_date           TEXT PRIMARY KEY,
+      headline_process_id    INTEGER REFERENCES newspaper_processes(id) ON DELETE SET NULL,
+      supporting_process_ids TEXT NOT NULL DEFAULT '[]',
+      trivia_text            TEXT,
+      created_at             TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_newspaper_processes_category ON newspaper_processes(category);
+    CREATE INDEX IF NOT EXISTS idx_newspaper_processes_disabled ON newspaper_processes(is_disabled);
+  `)
+
   await seedCategories(db)
 }
 

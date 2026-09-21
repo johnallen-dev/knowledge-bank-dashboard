@@ -5,10 +5,11 @@ import {
   MessageSquare, Database, PlusCircle, Tag,
   BarChart3, Settings, Home, Upload, FileText, ClipboardList, Key, Link2, Bot,
   ClipboardCheck, UserCog, FileBarChart, Users, LayoutDashboard, ShieldAlert,
+  Newspaper,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-type NavSection = 'sections' | 'knowledge' | 'updates' | 'qaReport' | 'claude' | 'system'
+type NavSection = 'sections' | 'knowledge' | 'updates' | 'qaReport' | 'newspaper' | 'claude' | 'system'
 
 const NAV: { href: string; label: string; icon: React.ElementType; section: NavSection; exact?: boolean }[] = [
   { href: '/guest',                  label: 'Guest Section',      icon: Home,          section: 'sections', exact: true },
@@ -27,6 +28,7 @@ const NAV: { href: string; label: string; icon: React.ElementType; section: NavS
   { href: '/qa-report/agent-feedback-report',  label: 'Agent Report',   icon: Users,          section: 'qaReport', exact: true },
   { href: '/qa-report/overall-report',         label: 'Overall Report', icon: LayoutDashboard, section: 'qaReport', exact: true },
   { href: '/qa-report/escalation-report',      label: 'Escalation Report', icon: ShieldAlert, section: 'qaReport', exact: true },
+  { href: '/process-newspaper',      label: 'Process Newspaper',  icon: Newspaper,     section: 'newspaper', exact: true },
   { href: '/claude',                 label: 'Claude AI',          icon: Bot,           section: 'claude', exact: true },
   { href: '/analytics',              label: 'Analytics',          icon: BarChart3,     section: 'system', exact: true },
   { href: '/settings',               label: 'Settings',           icon: Settings,      section: 'system', exact: true },
@@ -37,13 +39,14 @@ const SECTION_LABELS: Record<NavSection, string> = {
   knowledge: 'Knowledge',
   updates: 'Updates',
   qaReport: 'QA Report',
+  newspaper: 'Process Newspaper',
   claude: 'Claude AI',
   system: 'System',
 }
 
 export function Sidebar() {
   const pathname = usePathname()
-  const sections: NavSection[] = ['sections', 'knowledge', 'updates', 'qaReport', 'claude', 'system']
+  const sections: NavSection[] = ['sections', 'knowledge', 'updates', 'qaReport', 'newspaper', 'claude', 'system']
 
   return (
     <aside className="w-64 shrink-0 flex flex-col h-full" style={{ background: 'linear-gradient(180deg, #052e16 0%, #14532d 100%)' }}>
@@ -90,7 +93,7 @@ export function Sidebar() {
 
       {/* Section indicator — only shown on Knowledge Bank pages */}
       <div className="border-t border-green-800/60 px-4 py-4">
-        {!pathname.startsWith('/updates') && !pathname.startsWith('/qa-report') && (
+        {!pathname.startsWith('/updates') && !pathname.startsWith('/qa-report') && !pathname.startsWith('/process-newspaper') && (
           <div className="flex gap-1.5">
             <Link
               href="/guest"
