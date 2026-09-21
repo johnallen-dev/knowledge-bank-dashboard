@@ -1,5 +1,5 @@
 import {
-  listEligibleProcesses, getEdition, createEdition,
+  listEligibleProcesses, getEdition, createEdition, deleteEdition,
   resetFeaturedInCycle, markHeadlineFeatured, markSupportingShown, getProcessesByIds,
 } from '@/lib/db/queries/processNewspaper'
 import { generateTrivia } from '@/lib/ai/newspaperTrivia'
@@ -72,8 +72,15 @@ export async function generateOrGetTodayEdition(): Promise<TodayEditionResponse>
     const headline = existing.headline_process_id
       ? (await getProcessesByIds([existing.headline_process_id]))[0] ?? null
       : null
-    const supporting = await getProcessesByIds(existing.supporting_process_ids)
-    return { date: todayStr, headline, supporting, trivia: existing.trivia_text }
+    if (headline) {
+      const supporting = await getProcessesByIds(existing.supporting_process_ids)
+      return { date: todayStr, headline, supporting, trivia: existing.trivia_text }
+    }
+    // The stored headline no longer exists (deleted after this edition was generated),
+    // or this row somehow has no headline at all. Either way it's a dead edition —
+    // discard it and regenerate from current content instead of permanently showing
+    // "no newspaper today" even after eligible processes exist again.
+    await deleteEdition(todayStr)
   }
 
   const eligible = await listEligibleProcesses(todayStr)

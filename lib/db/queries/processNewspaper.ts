@@ -176,6 +176,11 @@ export async function getEdition(dateStr: string): Promise<NewspaperEdition | nu
   return rows[0] ? toEdition(rows[0] as Record<string, unknown>) : null
 }
 
+export async function deleteEdition(dateStr: string): Promise<void> {
+  const db = await getDb()
+  await db.execute({ sql: 'DELETE FROM newspaper_editions WHERE edition_date = ?', args: [dateStr] })
+}
+
 export async function createEdition(input: {
   edition_date: string
   headline_process_id: number
