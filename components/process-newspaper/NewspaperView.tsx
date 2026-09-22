@@ -5,6 +5,7 @@ import { HeadlineArticle } from './HeadlineArticle'
 import { SupportingArticle } from './SupportingArticle'
 import { DidYouKnowBox } from './DidYouKnowBox'
 import { ArticleModal } from './ArticleModal'
+import { RegenerateButton } from './RegenerateButton'
 import { Newspaper as NewspaperIcon } from 'lucide-react'
 import type { NewspaperProcess, TodayEditionResponse } from '@/lib/processNewspaper/types'
 
@@ -28,6 +29,9 @@ export function NewspaperView() {
   if (!edition || !edition.headline) {
     return (
       <div className="max-w-3xl mx-auto">
+        <div className="flex justify-end mb-2">
+          <RegenerateButton onRegenerated={setEdition} />
+        </div>
         <NewspaperMasthead />
         <div className="py-16 text-center space-y-3">
           <NewspaperIcon className="h-10 w-10 mx-auto text-muted-foreground" />
@@ -44,6 +48,9 @@ export function NewspaperView() {
 
   return (
     <div className="max-w-5xl mx-auto bg-[#fdfaf3] border border-[#e5ddc8] rounded-lg p-6 sm:p-10 shadow-sm">
+      <div className="flex justify-end mb-2">
+        <RegenerateButton onRegenerated={setEdition} />
+      </div>
       <NewspaperMasthead />
 
       <div className="grid md:grid-cols-3 gap-8">

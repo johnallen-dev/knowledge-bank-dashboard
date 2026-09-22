@@ -1,6 +1,7 @@
 import {
   listEligibleProcesses, getEdition, createEdition, deleteEdition,
   resetFeaturedInCycle, markHeadlineFeatured, markSupportingShown, getProcessesByIds,
+  revertHeadlineIfMarkedToday, revertSupportingIfMarkedToday,
 } from '@/lib/db/queries/processNewspaper'
 import { generateTrivia } from '@/lib/ai/newspaperTrivia'
 import { getTodayInNewspaperTimezone } from './timezone'
@@ -80,6 +81,34 @@ export async function generateOrGetTodayEdition(): Promise<TodayEditionResponse>
     // or this row somehow has no headline at all. Either way it's a dead edition —
     // discard it and regenerate from current content instead of permanently showing
     // "no newspaper today" even after eligible processes exist again.
+    await deleteEdition(todayStr)
+  }
+
+  const eligible = await listEligibleProcesses(todayStr)
+  if (eligible.length === 0) {
+    return { date: todayStr, headline: null, supporting: [], trivia: null }
+  }
+
+  return buildTodayEdition(todayStr, eligible)
+}
+
+/**
+ * Forces a brand-new selection for today, discarding whatever edition is currently
+ * live — used by the password-protected "Re-Create" button so a newly-added process
+ * can become eligible for today's headline/supporting picks without waiting for the
+ * next calendar day. The superseded headline/supporting marks are rolled back first
+ * (only if still stamped with today's date) since that edition was never actually
+ * published — it must not unfairly consume a Rule 2 rotation slot.
+ */
+export async function forceRegenerateTodayEdition(): Promise<TodayEditionResponse> {
+  const todayStr = getTodayInNewspaperTimezone()
+
+  const existing = await getEdition(todayStr)
+  if (existing) {
+    if (existing.headline_process_id) {
+      await revertHeadlineIfMarkedToday(existing.headline_process_id, todayStr)
+    }
+    await revertSupportingIfMarkedToday(existing.supporting_process_ids, todayStr)
     await deleteEdition(todayStr)
   }
 

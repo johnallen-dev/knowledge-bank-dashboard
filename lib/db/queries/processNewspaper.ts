@@ -168,6 +168,27 @@ export async function markSupportingShown(ids: number[], todayStr: string): Prom
   })
 }
 
+/** Undoes markHeadlineFeatured for a superseded (never actually published) edition. */
+export async function revertHeadlineIfMarkedToday(id: number, todayStr: string): Promise<void> {
+  const db = await getDb()
+  await db.execute({
+    sql: `UPDATE newspaper_processes SET featured_in_cycle = 0, last_headline_at = NULL
+          WHERE id = ? AND last_headline_at = ?`,
+    args: [id, todayStr],
+  })
+}
+
+/** Undoes markSupportingShown for a superseded (never actually published) edition. */
+export async function revertSupportingIfMarkedToday(ids: number[], todayStr: string): Promise<void> {
+  if (ids.length === 0) return
+  const db = await getDb()
+  await db.execute({
+    sql: `UPDATE newspaper_processes SET last_supporting_at = NULL
+          WHERE id IN (${ids.map(() => '?').join(',')}) AND last_supporting_at = ?`,
+    args: [...ids, todayStr],
+  })
+}
+
 // ── newspaper_editions ─────────────────────────────────────────────────────────
 
 export async function getEdition(dateStr: string): Promise<NewspaperEdition | null> {
