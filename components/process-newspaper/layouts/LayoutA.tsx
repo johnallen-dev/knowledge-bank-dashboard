@@ -6,9 +6,12 @@ import { FeatureSlot } from '../slots/FeatureSlot'
 import { PAPER } from '@/lib/processNewspaper/categoryStyle'
 import type { LayoutProps } from './types'
 
-/** Classic: large headline upper-left, one supporting upper-right, three columns below, one full-width feature at the bottom. */
+/** Classic: large headline upper-left, one supporting upper-right, three columns below, one full-width feature at the bottom.
+ * Degrades gracefully when fewer than 5 supporting articles are available — the newspaper
+ * must keep working with a small content library, not just a full one. */
 export function LayoutA({ headline, supporting, onOpen }: LayoutProps) {
   const [s1, s2, s3, s4, s5] = supporting
+  const columnItems = [s2, s3, s4].filter((p): p is NonNullable<typeof p> => !!p)
 
   return (
     <div className="flex flex-col gap-4">
@@ -16,20 +19,24 @@ export function LayoutA({ headline, supporting, onOpen }: LayoutProps) {
         <div className="md:col-span-2">
           <HeadlineSlot process={headline} onOpen={() => onOpen(headline)} size="large" />
         </div>
-        <div className="md:col-span-1">
-          <DidYouKnowSlot process={s1} onOpen={() => onOpen(s1)} />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pb-4" style={{ borderBottom: `1px solid ${PAPER.divider}` }}>
-        {[s2, s3, s4].map((p, i) => (
-          <div key={p.id} className={i > 0 ? 'sm:border-l pl-4' : ''} style={i > 0 ? { borderColor: PAPER.divider } : undefined}>
-            <StandardSlot process={p} onOpen={() => onOpen(p)} />
+        {s1 && (
+          <div className="md:col-span-1">
+            <DidYouKnowSlot process={s1} onOpen={() => onOpen(s1)} />
           </div>
-        ))}
+        )}
       </div>
 
-      <FeatureSlot process={s5} onOpen={() => onOpen(s5)} />
+      {columnItems.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pb-4" style={{ borderBottom: `1px solid ${PAPER.divider}` }}>
+          {columnItems.map((p, i) => (
+            <div key={p.id} className={i > 0 ? 'sm:border-l pl-4' : ''} style={i > 0 ? { borderColor: PAPER.divider } : undefined}>
+              <StandardSlot process={p} onOpen={() => onOpen(p)} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {s5 && <FeatureSlot process={s5} onOpen={() => onOpen(s5)} />}
     </div>
   )
 }
