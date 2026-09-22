@@ -13,7 +13,7 @@ function buildPrompt(processes: NewspaperProcess[]): string {
 
 ${docs}
 
-Pick ONE interesting, useful fact or reminder that is EXPLICITLY stated in the text above — do not infer, combine, or invent anything not directly written there. State it as a single, concise sentence (max ~220 characters) suitable for a "Did you know?" trivia box for staff.
+Pick ONE interesting, useful fact or reminder that is EXPLICITLY stated in the text above — do not infer, combine, or invent anything not directly written there. Write it as 2-3 short sentences (roughly 300-420 characters total) suitable for a "Did you know?" trivia box for staff — enough to give real context, not just a one-line teaser.
 
 Respond with ONLY the fact itself — no "Did you know" prefix, no quotation marks, no markdown, no extra commentary. If none of the documents contain a fact interesting or specific enough to be worth highlighting, respond with exactly: NONE`
 }

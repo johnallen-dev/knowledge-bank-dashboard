@@ -7,7 +7,8 @@ import { generateTrivia } from '@/lib/ai/newspaperTrivia'
 import { getTodayInNewspaperTimezone } from './timezone'
 import type { NewspaperProcess, TodayEditionResponse } from './types'
 
-const MAX_SUPPORTING = 8
+// Headline + MAX_SUPPORTING = 6 total articles per edition (A4-page layout budget).
+const MAX_SUPPORTING = 5
 
 function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]

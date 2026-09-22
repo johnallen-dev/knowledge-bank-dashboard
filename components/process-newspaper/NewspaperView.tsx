@@ -28,7 +28,7 @@ export function NewspaperView() {
 
   if (!edition || !edition.headline) {
     return (
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-2xl mx-auto">
         <div className="flex justify-end mb-2">
           <RegenerateButton onRegenerated={setEdition} />
         </div>
@@ -43,35 +43,27 @@ export function NewspaperView() {
   }
 
   const headline = edition.headline
-  const sidebarArticles = edition.supporting.slice(0, 2)
-  const columnArticles = edition.supporting.slice(2)
 
   return (
-    <div className="max-w-5xl mx-auto bg-[#fdfaf3] border border-[#e5ddc8] rounded-lg p-6 sm:p-10 shadow-sm">
+    <div className="mx-auto" style={{ maxWidth: 800 }}>
       <div className="flex justify-end mb-2">
         <RegenerateButton onRegenerated={setEdition} />
       </div>
-      <NewspaperMasthead />
 
-      <div className="grid md:grid-cols-3 gap-8">
-        <div className="md:col-span-2">
-          <HeadlineArticle process={headline} onOpen={() => setOpenArticle(headline)} />
-        </div>
-        <div className="md:col-span-1">
+      <div
+        className="bg-[#fdfaf3] border border-[#e5ddc8] rounded-lg shadow-sm p-5 sm:p-7 flex flex-col overflow-y-auto"
+        style={{ aspectRatio: '210 / 297' }}
+      >
+        <NewspaperMasthead />
+        <HeadlineArticle process={headline} onOpen={() => setOpenArticle(headline)} />
+
+        <div className="grid grid-cols-2 grid-rows-3 gap-2.5 flex-1 min-h-0 pt-1">
           <DidYouKnowBox trivia={edition.trivia} />
-          {sidebarArticles.map(p => (
-            <SupportingArticle key={p.id} process={p} size="small" onOpen={() => setOpenArticle(p)} />
+          {edition.supporting.map(p => (
+            <SupportingArticle key={p.id} process={p} onOpen={() => setOpenArticle(p)} />
           ))}
         </div>
       </div>
-
-      {columnArticles.length > 0 && (
-        <div className="mt-4 pt-6 border-t-2 border-[#1a1a1a] columns-1 sm:columns-2 lg:columns-3 gap-8">
-          {columnArticles.map((p, i) => (
-            <SupportingArticle key={p.id} process={p} size={i < 2 ? 'medium' : 'small'} onOpen={() => setOpenArticle(p)} />
-          ))}
-        </div>
-      )}
 
       {openArticle && <ArticleModal process={openArticle} onClose={() => setOpenArticle(null)} />}
     </div>

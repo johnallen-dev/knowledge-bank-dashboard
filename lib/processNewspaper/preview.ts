@@ -20,10 +20,10 @@ export function buildPreview(html: string, maxChars = 200): string {
   return `${text.slice(0, maxChars).trimEnd()}…`
 }
 
-/** First sentence (or a char-capped fallback) of plain text, used for trivia fallback extraction. */
-export function firstSentence(text: string, maxChars = 220): string {
+/** First 1-2 sentences (or a char-capped fallback) of plain text, used for trivia fallback extraction. */
+export function firstSentence(text: string, maxChars = 380): string {
   const stripped = stripHtml(text)
-  const match = stripped.match(/^.{1,220}?[.!?](?:\s|$)/)
+  const match = stripped.match(new RegExp(`^.{1,${maxChars}}?[.!?](?:\\s[A-Z].{0,${maxChars}}?[.!?])?(?:\\s|$)`))
   if (match) return match[0].trim()
   return stripped.length <= maxChars ? stripped : `${stripped.slice(0, maxChars).trimEnd()}…`
 }

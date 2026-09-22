@@ -3,6 +3,7 @@ import { X, Clock, AlertCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { CATEGORY_LABELS } from '@/lib/processNewspaper/types'
 import { formatDuration } from '@/lib/processNewspaper/duration'
+import { getArticleEmoji } from '@/lib/processNewspaper/emoji'
 import type { NewspaperProcess } from '@/lib/processNewspaper/types'
 
 interface ArticleModalProps {
@@ -15,13 +16,16 @@ export function ArticleModal({ process, onClose }: ArticleModalProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(20,15,5,0.6)' }}>
       <div className="bg-[#fdfaf3] rounded-lg shadow-2xl w-full max-w-2xl max-h-[88vh] flex flex-col border border-[#e5ddc8]">
         <div className="flex items-start justify-between gap-4 px-6 sm:px-8 pt-6 pb-4 border-b border-[#e5ddc8]">
-          <div className="space-y-2">
-            <Badge variant="outline" className="uppercase tracking-wide text-[10px] font-semibold">
-              {CATEGORY_LABELS[process.category]}
-            </Badge>
-            <h2 className="font-serif text-2xl sm:text-3xl font-bold leading-tight text-[#1a1a1a]">
-              {process.title}
-            </h2>
+          <div className="flex items-start gap-3 min-w-0">
+            <span className="text-4xl leading-none shrink-0" aria-hidden>{getArticleEmoji(process)}</span>
+            <div className="space-y-2 min-w-0">
+              <Badge variant="outline" className="uppercase tracking-wide text-[10px] font-semibold">
+                {CATEGORY_LABELS[process.category]}
+              </Badge>
+              <h2 className="font-serif text-2xl sm:text-3xl font-bold leading-tight text-[#1a1a1a]">
+                {process.title}
+              </h2>
+            </div>
           </div>
           <button onClick={onClose} className="shrink-0 text-muted-foreground hover:text-foreground mt-1">
             <X className="h-5 w-5" />
