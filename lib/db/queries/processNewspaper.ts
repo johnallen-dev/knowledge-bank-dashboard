@@ -1,6 +1,6 @@
 import { getDb } from '../client'
 import { getProcessStatus } from '@/lib/processNewspaper/status'
-import type { NewspaperProcess, NewspaperProcessWithStatus, ProcessInput, NewspaperEdition } from '@/lib/processNewspaper/types'
+import type { NewspaperProcess, NewspaperProcessWithStatus, ProcessInput, NewspaperEdition, LayoutKey } from '@/lib/processNewspaper/types'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -20,6 +20,8 @@ function toProcess(row: Record<string, unknown>): NewspaperProcess {
     featured_in_cycle: Number(row.featured_in_cycle ?? 0) === 1,
     last_headline_at: row.last_headline_at == null ? null : String(row.last_headline_at),
     last_supporting_at: row.last_supporting_at == null ? null : String(row.last_supporting_at),
+    summary_text: row.summary_text == null ? null : String(row.summary_text),
+    summary_generated_at: row.summary_generated_at == null ? null : String(row.summary_generated_at),
     created_at: String(row.created_at ?? ''),
     updated_at: String(row.updated_at ?? ''),
   }
@@ -33,40 +35,50 @@ function toEdition(row: Record<string, unknown>): NewspaperEdition {
     headline_process_id: row.headline_process_id == null ? null : Number(row.headline_process_id),
     supporting_process_ids: supportingIds,
     trivia_text: row.trivia_text == null ? null : String(row.trivia_text),
+    layout_key: row.layout_key == null ? null : (String(row.layout_key) as LayoutKey),
     created_at: String(row.created_at ?? ''),
   }
 }
 
 // ── newspaper_processes CRUD ──────────────────────────────────────────────────
 
-export async function createProcess(input: ProcessInput): Promise<number> {
+export async function createProcess(input: ProcessInput, summaryText: string): Promise<number> {
   const db = await getDb()
   const result = await db.execute({
     sql: `INSERT INTO newspaper_processes
-          (category, title, content_html, duration_type, duration_start, duration_end, duration_note, special_note, is_disabled)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          (category, title, content_html, duration_type, duration_start, duration_end, duration_note, special_note, is_disabled, summary_text, summary_generated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
     args: [
       input.category, input.title, input.content_html, input.duration_type,
       input.duration_start ?? null, input.duration_end ?? null, input.duration_note ?? null,
-      input.special_note ?? null, input.is_disabled ? 1 : 0,
+      input.special_note ?? null, input.is_disabled ? 1 : 0, summaryText,
     ],
   })
   return Number(result.lastInsertRowid)
 }
 
-export async function updateProcess(id: number, input: ProcessInput): Promise<void> {
+export async function updateProcess(id: number, input: ProcessInput, summaryText: string): Promise<void> {
   const db = await getDb()
   await db.execute({
     sql: `UPDATE newspaper_processes SET
             category = ?, title = ?, content_html = ?, duration_type = ?,
             duration_start = ?, duration_end = ?, duration_note = ?, special_note = ?,
-            is_disabled = ?, updated_at = datetime('now')
+            is_disabled = ?, summary_text = ?, summary_generated_at = datetime('now'), updated_at = datetime('now')
           WHERE id = ?`,
     args: [
       input.category, input.title, input.content_html, input.duration_type,
       input.duration_start ?? null, input.duration_end ?? null, input.duration_note ?? null,
-      input.special_note ?? null, input.is_disabled ? 1 : 0, id,
+      input.special_note ?? null, input.is_disabled ? 1 : 0, summaryText, id,
     ],
+  })
+}
+
+/** Backfill path: cache a summary for a process that doesn't have one yet, without touching anything else. */
+export async function setProcessSummary(id: number, summaryText: string): Promise<void> {
+  const db = await getDb()
+  await db.execute({
+    sql: `UPDATE newspaper_processes SET summary_text = ?, summary_generated_at = datetime('now') WHERE id = ?`,
+    args: [summaryText, id],
   })
 }
 
@@ -207,12 +219,24 @@ export async function createEdition(input: {
   headline_process_id: number
   supporting_process_ids: number[]
   trivia_text: string | null
+  layout_key: LayoutKey
 }): Promise<void> {
   const db = await getDb()
   await db.execute({
-    sql: `INSERT INTO newspaper_editions (edition_date, headline_process_id, supporting_process_ids, trivia_text)
-          VALUES (?, ?, ?, ?)
+    sql: `INSERT INTO newspaper_editions (edition_date, headline_process_id, supporting_process_ids, trivia_text, layout_key)
+          VALUES (?, ?, ?, ?, ?)
           ON CONFLICT(edition_date) DO NOTHING`,
-    args: [input.edition_date, input.headline_process_id, JSON.stringify(input.supporting_process_ids), input.trivia_text],
+    args: [input.edition_date, input.headline_process_id, JSON.stringify(input.supporting_process_ids), input.trivia_text, input.layout_key],
   })
+}
+
+/** Most recent edition's layout before `beforeDate`, used to avoid repeating it today. */
+export async function getMostRecentPastEditionLayout(beforeDate: string): Promise<LayoutKey | null> {
+  const db = await getDb()
+  const { rows } = await db.execute({
+    sql: `SELECT layout_key FROM newspaper_editions WHERE edition_date < ? AND layout_key IS NOT NULL ORDER BY edition_date DESC LIMIT 1`,
+    args: [beforeDate],
+  })
+  const row = rows[0] as Record<string, unknown> | undefined
+  return row?.layout_key == null ? null : (String(row.layout_key) as LayoutKey)
 }

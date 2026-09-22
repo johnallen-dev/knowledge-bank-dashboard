@@ -1,19 +1,24 @@
 'use client'
 import { Lightbulb } from 'lucide-react'
 import { playfairDisplay } from '@/lib/processNewspaper/fonts'
+import { PAPER, CATEGORY_COLOR } from '@/lib/processNewspaper/categoryStyle'
 
 export function DidYouKnowBox({ trivia }: { trivia: string | null }) {
   if (!trivia) return null
+  const color = CATEGORY_COLOR.internal
 
   return (
-    <div className="border border-[#e8c9a0] rounded-sm bg-[#fdf6ea] flex flex-col h-full min-h-0 overflow-hidden">
-      <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#f6dfc0]">
-        <Lightbulb className="h-3.5 w-3.5 text-[#8a3324] shrink-0" />
-        <h4 className={`${playfairDisplay.className} text-xs font-black uppercase tracking-[0.1em] text-[#5b3a1a]`}>
+    <div
+      className="flex items-start sm:items-center gap-2 px-3 py-2 mb-1 shrink-0"
+      style={{ borderTop: `1px solid ${PAPER.divider}`, borderBottom: `1px solid ${PAPER.divider}` }}
+    >
+      <Lightbulb className="h-3.5 w-3.5 shrink-0 mt-0.5 sm:mt-0" style={{ color }} />
+      <p className="text-xs leading-snug" style={{ color: PAPER.secondaryText }}>
+        <span className={`${playfairDisplay.className} font-black uppercase tracking-[0.08em] mr-1.5`} style={{ color }}>
           Did You Know?
-        </h4>
-      </div>
-      <p className="text-xs font-serif leading-relaxed text-[#33302a] line-clamp-8 p-2.5">{trivia}</p>
+        </span>
+        {trivia}
+      </p>
     </div>
   )
 }

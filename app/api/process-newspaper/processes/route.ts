@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { listProcesses, createProcess } from '@/lib/db/queries/processNewspaper'
 import { validateProcessInput } from '@/lib/processNewspaper/validate'
+import { generateProcessSummary } from '@/lib/ai/processSummary'
 import type { ProcessInput } from '@/lib/processNewspaper/types'
 
 export const dynamic = 'force-dynamic'
@@ -39,7 +40,8 @@ export async function POST(req: NextRequest) {
       is_disabled: !!body.is_disabled,
     }
 
-    const id = await createProcess(input)
+    const summaryText = await generateProcessSummary(input)
+    const id = await createProcess(input, summaryText)
     return NextResponse.json({ id }, { status: 201 })
   } catch (err) {
     console.error('[POST /api/process-newspaper/processes]', err)

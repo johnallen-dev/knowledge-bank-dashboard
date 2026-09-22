@@ -1,13 +1,25 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { NewspaperMasthead } from './NewspaperMasthead'
-import { HeadlineArticle } from './HeadlineArticle'
-import { SupportingArticle } from './SupportingArticle'
 import { DidYouKnowBox } from './DidYouKnowBox'
 import { ArticleModal } from './ArticleModal'
 import { RegenerateButton } from './RegenerateButton'
-import { Newspaper as NewspaperIcon } from 'lucide-react'
-import type { NewspaperProcess, TodayEditionResponse } from '@/lib/processNewspaper/types'
+import { LayoutA } from './layouts/LayoutA'
+import { LayoutB } from './layouts/LayoutB'
+import { LayoutC } from './layouts/LayoutC'
+import { LayoutD } from './layouts/LayoutD'
+import { LayoutE } from './layouts/LayoutE'
+import { Newspaper as NewspaperIcon, Printer } from 'lucide-react'
+import { PAPER } from '@/lib/processNewspaper/categoryStyle'
+import type { NewspaperProcess, TodayEditionResponse, LayoutKey } from '@/lib/processNewspaper/types'
+
+const LAYOUT_COMPONENTS: Record<LayoutKey, typeof LayoutA> = {
+  classic: LayoutA,
+  modern: LayoutB,
+  broadsheet: LayoutC,
+  visual: LayoutD,
+  compact: LayoutE,
+}
 
 export function NewspaperView() {
   const [edition, setEdition] = useState<TodayEditionResponse | null>(null)
@@ -29,7 +41,7 @@ export function NewspaperView() {
   if (!edition || !edition.headline) {
     return (
       <div className="max-w-2xl mx-auto">
-        <div className="flex justify-end mb-2">
+        <div className="flex justify-end mb-2 print:hidden">
           <RegenerateButton onRegenerated={setEdition} />
         </div>
         <NewspaperMasthead />
@@ -42,33 +54,41 @@ export function NewspaperView() {
     )
   }
 
-  const headline = edition.headline
+  const Layout = LAYOUT_COMPONENTS[edition.layoutKey] ?? LayoutA
 
   return (
-    <div className="mx-auto" style={{ maxWidth: 800 }}>
-      <div className="flex justify-end mb-2">
+    <div className="mx-auto print:m-0" style={{ maxWidth: 900 }}>
+      <div className="flex justify-end gap-2 mb-2 print:hidden">
+        <button
+          onClick={() => window.print()}
+          className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 border rounded-md hover:bg-accent transition-colors"
+        >
+          <Printer className="h-3.5 w-3.5" />
+          Print / Save as PDF
+        </button>
         <RegenerateButton onRegenerated={setEdition} />
       </div>
 
       <div
-        className="bg-[#fdfaf3] border border-[#e5ddc8] rounded-lg shadow-sm p-5 sm:p-7 flex flex-col"
-        style={{ minHeight: '1000px' }}
+        id="process-newspaper-page"
+        className="border shadow-sm p-5 sm:p-8 flex flex-col print:shadow-none print:border-0 print:p-0"
+        style={{ background: PAPER.background, borderColor: PAPER.divider, minHeight: 1000 }}
       >
         <NewspaperMasthead />
-        <HeadlineArticle process={headline} onOpen={() => setOpenArticle(headline)} />
+        <DidYouKnowBox trivia={edition.trivia} />
 
-        <div className="grid grid-cols-2 gap-2.5 flex-1" style={{ gridAutoRows: 'minmax(170px, 1fr)' }}>
-          <DidYouKnowBox trivia={edition.trivia} />
-          {edition.supporting.map(p => (
-            <SupportingArticle key={p.id} process={p} onOpen={() => setOpenArticle(p)} />
-          ))}
+        <div className="mt-3 flex-1">
+          <Layout headline={edition.headline} supporting={edition.supporting} onOpen={setOpenArticle} />
         </div>
 
-        <div className="mt-4 pt-2 border-t border-[#1a1a1a] flex items-center justify-center gap-3 text-[9px] font-bold uppercase tracking-[0.15em] text-[#6b5f4a] shrink-0">
+        <div
+          className="mt-4 pt-2 flex items-center justify-center gap-3 text-[9px] font-bold uppercase tracking-[0.15em] shrink-0"
+          style={{ borderTop: `1px solid ${PAPER.primaryText}`, color: PAPER.secondaryText }}
+        >
           <span>Same Processes</span>
-          <span className="text-[#c9bd9e]">|</span>
+          <span style={{ color: PAPER.divider }}>|</span>
           <span>Same Team</span>
-          <span className="text-[#c9bd9e]">|</span>
+          <span style={{ color: PAPER.divider }}>|</span>
           <span>Brighter Days Ahead</span>
         </div>
       </div>

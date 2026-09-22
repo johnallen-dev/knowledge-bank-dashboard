@@ -1,6 +1,7 @@
 export type ProcessCategory = 'internal' | 'guest_related' | 'listing_related'
 export type DurationType = 'date_range' | 'fixed' | 'other'
 export type ProcessStatus = 'active' | 'upcoming' | 'expired' | 'disabled'
+export type LayoutKey = 'classic' | 'modern' | 'broadsheet' | 'visual' | 'compact'
 
 export interface NewspaperProcess {
   id: number
@@ -17,6 +18,8 @@ export interface NewspaperProcess {
   featured_in_cycle: boolean
   last_headline_at: string | null
   last_supporting_at: string | null
+  summary_text: string | null
+  summary_generated_at: string | null
   created_at: string
   updated_at: string
 }
@@ -42,6 +45,7 @@ export interface NewspaperEdition {
   headline_process_id: number | null
   supporting_process_ids: number[]
   trivia_text: string | null
+  layout_key: LayoutKey | null
   created_at: string
 }
 
@@ -50,6 +54,7 @@ export interface TodayEditionResponse {
   headline: NewspaperProcess | null
   supporting: NewspaperProcess[]
   trivia: string | null
+  layoutKey: LayoutKey
 }
 
 export const CATEGORY_LABELS: Record<ProcessCategory, string> = {

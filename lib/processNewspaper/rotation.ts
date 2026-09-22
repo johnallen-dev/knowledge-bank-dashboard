@@ -2,13 +2,17 @@ import {
   listEligibleProcesses, getEdition, createEdition, deleteEdition,
   resetFeaturedInCycle, markHeadlineFeatured, markSupportingShown, getProcessesByIds,
   revertHeadlineIfMarkedToday, revertSupportingIfMarkedToday,
+  getMostRecentPastEditionLayout, setProcessSummary,
 } from '@/lib/db/queries/processNewspaper'
 import { generateTrivia } from '@/lib/ai/newspaperTrivia'
+import { generateProcessSummary } from '@/lib/ai/processSummary'
 import { getTodayInNewspaperTimezone } from './timezone'
-import type { NewspaperProcess, TodayEditionResponse } from './types'
+import type { NewspaperProcess, TodayEditionResponse, LayoutKey } from './types'
 
 // Headline + MAX_SUPPORTING = 6 total articles per edition (A4-page layout budget).
 const MAX_SUPPORTING = 5
+
+const LAYOUT_KEYS: LayoutKey[] = ['classic', 'modern', 'broadsheet', 'visual', 'compact']
 
 function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
@@ -21,6 +25,23 @@ function shuffle<T>(arr: T[]): T[] {
     ;[copy[i], copy[j]] = [copy[j], copy[i]]
   }
   return copy
+}
+
+/** Picks a layout different from the most recent past edition's, when there's a choice. */
+async function pickLayout(todayStr: string): Promise<LayoutKey> {
+  const previous = await getMostRecentPastEditionLayout(todayStr)
+  const candidates = previous ? LAYOUT_KEYS.filter(k => k !== previous) : LAYOUT_KEYS
+  return pickRandom(candidates)
+}
+
+/** Backfills a cached AI summary for any process that doesn't have one yet (older content). */
+async function ensureSummaries(processes: NewspaperProcess[]): Promise<NewspaperProcess[]> {
+  return Promise.all(processes.map(async p => {
+    if (p.summary_text) return p
+    const summary = await generateProcessSummary(p)
+    await setProcessSummary(p.id, summary)
+    return { ...p, summary_text: summary }
+  }))
 }
 
 async function buildTodayEdition(todayStr: string, eligible: NewspaperProcess[]): Promise<TodayEditionResponse> {
@@ -45,13 +66,18 @@ async function buildTodayEdition(todayStr: string, eligible: NewspaperProcess[])
   const supporting = sorted.slice(0, MAX_SUPPORTING)
   await markSupportingShown(supporting.map(p => p.id), todayStr)
 
-  const trivia = await generateTrivia(eligible)
+  const [trivia, layoutKey, [headlineWithSummary, ...supportingWithSummary]] = await Promise.all([
+    generateTrivia(eligible),
+    pickLayout(todayStr),
+    ensureSummaries([headline, ...supporting]),
+  ])
 
   await createEdition({
     edition_date: todayStr,
     headline_process_id: headline.id,
     supporting_process_ids: supporting.map(p => p.id),
     trivia_text: trivia,
+    layout_key: layoutKey,
   })
 
   // Re-fetch the authoritative persisted edition in case a concurrent request won the
@@ -60,10 +86,13 @@ async function buildTodayEdition(todayStr: string, eligible: NewspaperProcess[])
   if (persisted && persisted.headline_process_id !== headline.id) {
     const headlineProc = (await getProcessesByIds([persisted.headline_process_id!]))[0] ?? null
     const supportingProcs = await getProcessesByIds(persisted.supporting_process_ids)
-    return { date: todayStr, headline: headlineProc, supporting: supportingProcs, trivia: persisted.trivia_text }
+    return {
+      date: todayStr, headline: headlineProc, supporting: supportingProcs,
+      trivia: persisted.trivia_text, layoutKey: persisted.layout_key ?? 'classic',
+    }
   }
 
-  return { date: todayStr, headline, supporting, trivia }
+  return { date: todayStr, headline: headlineWithSummary, supporting: supportingWithSummary, trivia, layoutKey }
 }
 
 export async function generateOrGetTodayEdition(): Promise<TodayEditionResponse> {
@@ -76,7 +105,11 @@ export async function generateOrGetTodayEdition(): Promise<TodayEditionResponse>
       : null
     if (headline) {
       const supporting = await getProcessesByIds(existing.supporting_process_ids)
-      return { date: todayStr, headline, supporting, trivia: existing.trivia_text }
+      const [headlineWithSummary, ...supportingWithSummary] = await ensureSummaries([headline, ...supporting])
+      return {
+        date: todayStr, headline: headlineWithSummary, supporting: supportingWithSummary,
+        trivia: existing.trivia_text, layoutKey: existing.layout_key ?? 'classic',
+      }
     }
     // The stored headline no longer exists (deleted after this edition was generated),
     // or this row somehow has no headline at all. Either way it's a dead edition —
@@ -87,7 +120,7 @@ export async function generateOrGetTodayEdition(): Promise<TodayEditionResponse>
 
   const eligible = await listEligibleProcesses(todayStr)
   if (eligible.length === 0) {
-    return { date: todayStr, headline: null, supporting: [], trivia: null }
+    return { date: todayStr, headline: null, supporting: [], trivia: null, layoutKey: 'classic' }
   }
 
   return buildTodayEdition(todayStr, eligible)
@@ -115,7 +148,7 @@ export async function forceRegenerateTodayEdition(): Promise<TodayEditionRespons
 
   const eligible = await listEligibleProcesses(todayStr)
   if (eligible.length === 0) {
-    return { date: todayStr, headline: null, supporting: [], trivia: null }
+    return { date: todayStr, headline: null, supporting: [], trivia: null, layoutKey: 'classic' }
   }
 
   return buildTodayEdition(todayStr, eligible)

@@ -20,6 +20,36 @@ export function buildPreview(html: string, maxChars = 200): string {
   return `${text.slice(0, maxChars).trimEnd()}…`
 }
 
+/**
+ * Derives a shorter version of an already-generated (plain-text) summary for supporting-card
+ * use, truncating at a sentence boundary rather than mid-sentence. Pure/no-AI so it's safe to
+ * import from client components (unlike lib/ai/processSummary.ts, which pulls in the AI SDK).
+ */
+export function shortenSummary(summary: string, maxWords = 40): string {
+  const words = summary.trim().split(/\s+/)
+  if (words.length <= maxWords) return summary.trim()
+
+  const sentences = summary.match(/[^.!?]+[.!?]+/g) ?? [summary]
+  let result = ''
+  for (const sentence of sentences) {
+    const candidate = (result + sentence).trim()
+    if (candidate.split(/\s+/).length > maxWords && result) break
+    result = candidate + ' '
+    if (candidate.split(/\s+/).length >= maxWords) break
+  }
+  result = result.trim()
+  if (result) return result
+
+  // No sentence boundary found within budget — hard-truncate at the word count instead.
+  return `${words.slice(0, maxWords).join(' ')}…`
+}
+
+/** The summary text to display for a process, sized for its slot — cached AI summary preferred. */
+export function getDisplaySummary(process: { summary_text: string | null; content_html: string }, maxWords: number): string {
+  const base = process.summary_text?.trim() || buildPreview(process.content_html, maxWords * 7)
+  return shortenSummary(base, maxWords)
+}
+
 /** First 1-2 sentences (or a char-capped fallback) of plain text, used for trivia fallback extraction. */
 export function firstSentence(text: string, maxChars = 380): string {
   const stripped = stripHtml(text)

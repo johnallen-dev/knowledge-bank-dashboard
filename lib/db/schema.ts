@@ -215,6 +215,20 @@ export async function runMigrations(db: Client): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_newspaper_processes_disabled ON newspaper_processes(is_disabled);
   `)
 
+  // Cached AI summary per process (generated on create/update, backfilled lazily when an
+  // older process is first featured) — avoids regenerating on every newspaper view.
+  try {
+    await db.execute('ALTER TABLE newspaper_processes ADD COLUMN summary_text TEXT')
+  } catch { /* column already exists */ }
+  try {
+    await db.execute('ALTER TABLE newspaper_processes ADD COLUMN summary_generated_at TEXT')
+  } catch { /* column already exists */ }
+
+  // Which of the 5 rotating editorial layouts this day's edition uses.
+  try {
+    await db.execute('ALTER TABLE newspaper_editions ADD COLUMN layout_key TEXT')
+  } catch { /* column already exists */ }
+
   await seedCategories(db)
 }
 

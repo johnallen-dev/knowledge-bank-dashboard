@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getProcess, updateProcess, deleteProcess } from '@/lib/db/queries/processNewspaper'
 import { validateProcessInput } from '@/lib/processNewspaper/validate'
 import { isValidNewspaperPassword } from '@/lib/processNewspaper/auth'
+import { generateProcessSummary } from '@/lib/ai/processSummary'
 import type { ProcessInput } from '@/lib/processNewspaper/types'
 
 export const dynamic = 'force-dynamic'
@@ -39,9 +40,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       is_disabled: !!body.is_disabled,
     }
 
+    const summaryText = await generateProcessSummary(input)
+
     // Rotation history (featured_in_cycle / last_headline_at / last_supporting_at) is
     // intentionally untouched by updateProcess — editing must not reset rotation history.
-    await updateProcess(id, input)
+    await updateProcess(id, input, summaryText)
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error('[PUT /api/process-newspaper/processes/:id]', err)

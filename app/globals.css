@@ -52,3 +52,32 @@
   * { @apply border-border; }
   body { @apply bg-background text-foreground; }
 }
+
+/* Process Newspaper: A4 print/PDF support (Ctrl/Cmd+P). Hides app chrome, keeps the
+   newspaper page at A4 size, and stops articles from splitting across pages. */
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #process-newspaper-page,
+  #process-newspaper-page * {
+    visibility: visible;
+  }
+
+  #process-newspaper-page {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+
+  #process-newspaper-page article {
+    break-inside: avoid;
+  }
+}
