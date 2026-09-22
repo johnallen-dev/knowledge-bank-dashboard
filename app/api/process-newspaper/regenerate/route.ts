@@ -3,6 +3,9 @@ import { forceRegenerateTodayEdition } from '@/lib/processNewspaper/rotation'
 import { isValidNewspaperPassword } from '@/lib/processNewspaper/auth'
 
 export const dynamic = 'force-dynamic'
+// Re-Create always pays the full cold-generation cost (trivia + layout + summary
+// backfill in parallel) — give it headroom past Vercel's default 10s timeout.
+export const maxDuration = 60
 
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get('authorization') ?? ''

@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { generateOrGetTodayEdition } from '@/lib/processNewspaper/rotation'
 
 export const dynamic = 'force-dynamic'
+// Cold (first-of-day) generation runs trivia + layout selection + summary backfill
+// in parallel before this route can respond — measured ~8s locally with everything
+// already cached; slower in production against Turso + the Anthropic API. Extend past
+// Vercel's default 10s function timeout so the cron doesn't 504 before Slack gets sent.
+export const maxDuration = 60
 
 function getAppUrl(): string {
   if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL
