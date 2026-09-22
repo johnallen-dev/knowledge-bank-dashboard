@@ -6,9 +6,11 @@ import { CATEGORY_COLOR, CATEGORY_TINT } from '@/lib/processNewspaper/categorySt
 import { playfairDisplay } from '@/lib/processNewspaper/fonts'
 import type { NewspaperProcess } from '@/lib/processNewspaper/types'
 
-/** Editorial "reminder box" treatment for a real supporting article — distinct from the
- * separate AI trivia widget, which keeps its own fixed spot in the masthead area. */
-export function DidYouKnowSlot({ process, onOpen }: { process: NewspaperProcess; onOpen: () => void }) {
+/** Editorial "spotlight box" treatment for a real supporting article — pastel background,
+ * lightbulb icon. Deliberately NOT labeled "Did You Know?" — that label is reserved for the
+ * separate AI trivia banner (its own fixed spot under the masthead), so the two never collide
+ * on the same page and a reader can always tell them apart. */
+export function SpotlightSlot({ process, onOpen }: { process: NewspaperProcess; onOpen: () => void }) {
   const color = CATEGORY_COLOR[process.category]
 
   return (
@@ -20,7 +22,7 @@ export function DidYouKnowSlot({ process, onOpen }: { process: NewspaperProcess;
       <div className="flex items-center gap-1.5 px-3 py-2" style={{ borderBottom: `1px solid ${color}33` }}>
         <Lightbulb className="h-3.5 w-3.5 shrink-0" style={{ color }} />
         <h4 className={`${playfairDisplay.className} text-xs font-black uppercase tracking-[0.1em]`} style={{ color }}>
-          Did You Know?
+          Quick Insight
         </h4>
       </div>
       <div className="px-3 py-2 flex-1 min-h-0">

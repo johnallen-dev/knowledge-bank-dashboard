@@ -1,6 +1,6 @@
 'use client'
 import { HeadlineSlot } from '../slots/HeadlineSlot'
-import { DidYouKnowSlot } from '../slots/DidYouKnowSlot'
+import { SpotlightSlot } from '../slots/SpotlightSlot'
 import { IllustratedSlot } from '../slots/IllustratedSlot'
 import { QuickReminderSlot } from '../slots/QuickReminderSlot'
 import { PAPER } from '@/lib/processNewspaper/categoryStyle'
@@ -22,7 +22,7 @@ export function LayoutD({ headline, supporting, onOpen }: LayoutProps) {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" style={{ gridAutoRows: 'minmax(140px, auto)' }}>
           {s1 && (
             <div className="sm:row-span-2">
-              <DidYouKnowSlot process={s1} onOpen={() => onOpen(s1)} />
+              <SpotlightSlot process={s1} onOpen={() => onOpen(s1)} />
             </div>
           )}
           {s2 && (

@@ -1,6 +1,6 @@
 'use client'
 import { HeadlineSlot } from '../slots/HeadlineSlot'
-import { DidYouKnowSlot } from '../slots/DidYouKnowSlot'
+import { SpotlightSlot } from '../slots/SpotlightSlot'
 import { StandardSlot } from '../slots/StandardSlot'
 import { FeatureSlot } from '../slots/FeatureSlot'
 import { PAPER } from '@/lib/processNewspaper/categoryStyle'
@@ -21,7 +21,7 @@ export function LayoutA({ headline, supporting, onOpen }: LayoutProps) {
         </div>
         {s1 && (
           <div className="md:col-span-1">
-            <DidYouKnowSlot process={s1} onOpen={() => onOpen(s1)} />
+            <SpotlightSlot process={s1} onOpen={() => onOpen(s1)} />
           </div>
         )}
       </div>
