@@ -51,17 +51,25 @@ export function NewspaperView() {
       </div>
 
       <div
-        className="bg-[#fdfaf3] border border-[#e5ddc8] rounded-lg shadow-sm p-5 sm:p-7 flex flex-col overflow-y-auto"
-        style={{ aspectRatio: '210 / 297' }}
+        className="bg-[#fdfaf3] border border-[#e5ddc8] rounded-lg shadow-sm p-5 sm:p-7 flex flex-col"
+        style={{ minHeight: '1000px' }}
       >
         <NewspaperMasthead />
         <HeadlineArticle process={headline} onOpen={() => setOpenArticle(headline)} />
 
-        <div className="grid grid-cols-2 grid-rows-3 gap-2.5 flex-1 min-h-0 pt-1">
+        <div className="grid grid-cols-2 gap-2.5 flex-1" style={{ gridAutoRows: 'minmax(170px, 1fr)' }}>
           <DidYouKnowBox trivia={edition.trivia} />
           {edition.supporting.map(p => (
             <SupportingArticle key={p.id} process={p} onOpen={() => setOpenArticle(p)} />
           ))}
+        </div>
+
+        <div className="mt-4 pt-2 border-t border-[#1a1a1a] flex items-center justify-center gap-3 text-[9px] font-bold uppercase tracking-[0.15em] text-[#6b5f4a] shrink-0">
+          <span>Same Processes</span>
+          <span className="text-[#c9bd9e]">|</span>
+          <span>Same Team</span>
+          <span className="text-[#c9bd9e]">|</span>
+          <span>Brighter Days Ahead</span>
         </div>
       </div>
 
