@@ -18,6 +18,7 @@ export interface NewspaperProcess {
   featured_in_cycle: boolean
   last_headline_at: string | null
   last_supporting_at: string | null
+  last_trivia_at: string | null
   summary_text: string | null
   summary_generated_at: string | null
   created_at: string
@@ -45,6 +46,7 @@ export interface NewspaperEdition {
   headline_process_id: number | null
   supporting_process_ids: number[]
   trivia_text: string | null
+  trivia_process_id: number | null
   layout_key: LayoutKey | null
   created_at: string
 }

@@ -20,6 +20,7 @@ function toProcess(row: Record<string, unknown>): NewspaperProcess {
     featured_in_cycle: Number(row.featured_in_cycle ?? 0) === 1,
     last_headline_at: row.last_headline_at == null ? null : String(row.last_headline_at),
     last_supporting_at: row.last_supporting_at == null ? null : String(row.last_supporting_at),
+    last_trivia_at: row.last_trivia_at == null ? null : String(row.last_trivia_at),
     summary_text: row.summary_text == null ? null : String(row.summary_text),
     summary_generated_at: row.summary_generated_at == null ? null : String(row.summary_generated_at),
     created_at: String(row.created_at ?? ''),
@@ -35,6 +36,7 @@ function toEdition(row: Record<string, unknown>): NewspaperEdition {
     headline_process_id: row.headline_process_id == null ? null : Number(row.headline_process_id),
     supporting_process_ids: supportingIds,
     trivia_text: row.trivia_text == null ? null : String(row.trivia_text),
+    trivia_process_id: row.trivia_process_id == null ? null : Number(row.trivia_process_id),
     layout_key: row.layout_key == null ? null : (String(row.layout_key) as LayoutKey),
     created_at: String(row.created_at ?? ''),
   }
@@ -201,6 +203,25 @@ export async function revertSupportingIfMarkedToday(ids: number[], todayStr: str
   })
 }
 
+/** Marks a process as today's "Did You Know?" trivia source, starting its one-week cooldown. */
+export async function markTriviaShown(id: number, todayStr: string): Promise<void> {
+  const db = await getDb()
+  await db.execute({
+    sql: `UPDATE newspaper_processes SET last_trivia_at = ? WHERE id = ?`,
+    args: [todayStr, id],
+  })
+}
+
+/** Undoes markTriviaShown for a superseded (never actually published) edition. */
+export async function revertTriviaIfMarkedToday(id: number | null, todayStr: string): Promise<void> {
+  if (id == null) return
+  const db = await getDb()
+  await db.execute({
+    sql: `UPDATE newspaper_processes SET last_trivia_at = NULL WHERE id = ? AND last_trivia_at = ?`,
+    args: [id, todayStr],
+  })
+}
+
 // ── newspaper_editions ─────────────────────────────────────────────────────────
 
 export async function getEdition(dateStr: string): Promise<NewspaperEdition | null> {
@@ -219,14 +240,15 @@ export async function createEdition(input: {
   headline_process_id: number
   supporting_process_ids: number[]
   trivia_text: string | null
+  trivia_process_id: number | null
   layout_key: LayoutKey
 }): Promise<void> {
   const db = await getDb()
   await db.execute({
-    sql: `INSERT INTO newspaper_editions (edition_date, headline_process_id, supporting_process_ids, trivia_text, layout_key)
-          VALUES (?, ?, ?, ?, ?)
+    sql: `INSERT INTO newspaper_editions (edition_date, headline_process_id, supporting_process_ids, trivia_text, trivia_process_id, layout_key)
+          VALUES (?, ?, ?, ?, ?, ?)
           ON CONFLICT(edition_date) DO NOTHING`,
-    args: [input.edition_date, input.headline_process_id, JSON.stringify(input.supporting_process_ids), input.trivia_text, input.layout_key],
+    args: [input.edition_date, input.headline_process_id, JSON.stringify(input.supporting_process_ids), input.trivia_text, input.trivia_process_id, input.layout_key],
   })
 }
 

@@ -2,6 +2,7 @@ import {
   listEligibleProcesses, getEdition, createEdition, deleteEdition,
   resetFeaturedInCycle, markHeadlineFeatured, markSupportingShown, getProcessesByIds,
   revertHeadlineIfMarkedToday, revertSupportingIfMarkedToday,
+  markTriviaShown, revertTriviaIfMarkedToday,
   getMostRecentPastEditionLayout, setProcessSummary,
 } from '@/lib/db/queries/processNewspaper'
 import { generateTrivia } from '@/lib/ai/newspaperTrivia'
@@ -13,6 +14,9 @@ import type { NewspaperProcess, TodayEditionResponse, LayoutKey } from './types'
 const MAX_SUPPORTING = 5
 
 const LAYOUT_KEYS: LayoutKey[] = ['classic', 'modern', 'broadsheet', 'visual', 'compact']
+
+// The same content can't be the "Did You Know?" trivia source more than once a week.
+const TRIVIA_COOLDOWN_DAYS = 7
 
 function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
@@ -32,6 +36,23 @@ async function pickLayout(todayStr: string): Promise<LayoutKey> {
   const previous = await getMostRecentPastEditionLayout(todayStr)
   const candidates = previous ? LAYOUT_KEYS.filter(k => k !== previous) : LAYOUT_KEYS
   return pickRandom(candidates)
+}
+
+function addDays(dateStr: string, days: number): string {
+  const d = new Date(`${dateStr}T00:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + days)
+  return d.toISOString().slice(0, 10)
+}
+
+/** Picks which process today's "Did You Know?" fact should come from, excluding
+ * anything used as trivia in the last TRIVIA_COOLDOWN_DAYS days. Falls back to the
+ * least-recently-used process if the eligible library is too small to honor the
+ * cooldown for every pick, so the feature keeps working rather than breaking. */
+function pickTriviaSource(eligible: NewspaperProcess[], todayStr: string): NewspaperProcess {
+  const cutoff = addDays(todayStr, -TRIVIA_COOLDOWN_DAYS)
+  const cooled = eligible.filter(p => !p.last_trivia_at || p.last_trivia_at < cutoff)
+  if (cooled.length > 0) return pickRandom(cooled)
+  return [...eligible].sort((a, b) => (a.last_trivia_at ?? '').localeCompare(b.last_trivia_at ?? ''))[0]
 }
 
 /** Backfills a cached AI summary for any process that doesn't have one yet (older content). */
@@ -66,17 +87,21 @@ async function buildTodayEdition(todayStr: string, eligible: NewspaperProcess[])
   const supporting = sorted.slice(0, MAX_SUPPORTING)
   await markSupportingShown(supporting.map(p => p.id), todayStr)
 
+  const triviaSource = pickTriviaSource(eligible, todayStr)
+
   const [trivia, layoutKey, [headlineWithSummary, ...supportingWithSummary]] = await Promise.all([
-    generateTrivia(eligible),
+    generateTrivia(triviaSource),
     pickLayout(todayStr),
     ensureSummaries([headline, ...supporting]),
   ])
+  if (trivia) await markTriviaShown(triviaSource.id, todayStr)
 
   await createEdition({
     edition_date: todayStr,
     headline_process_id: headline.id,
     supporting_process_ids: supporting.map(p => p.id),
     trivia_text: trivia,
+    trivia_process_id: trivia ? triviaSource.id : null,
     layout_key: layoutKey,
   })
 
@@ -143,6 +168,7 @@ export async function forceRegenerateTodayEdition(): Promise<TodayEditionRespons
       await revertHeadlineIfMarkedToday(existing.headline_process_id, todayStr)
     }
     await revertSupportingIfMarkedToday(existing.supporting_process_ids, todayStr)
+    await revertTriviaIfMarkedToday(existing.trivia_process_id, todayStr)
     await deleteEdition(todayStr)
   }
 

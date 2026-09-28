@@ -229,6 +229,17 @@ export async function runMigrations(db: Client): Promise<void> {
     await db.execute('ALTER TABLE newspaper_editions ADD COLUMN layout_key TEXT')
   } catch { /* column already exists */ }
 
+  // Enforces "the same content can't be the 'Did You Know?' fact more than once a
+  // week": last_trivia_at tracks when a process was last used as the trivia source,
+  // and trivia_process_id records which process today's edition drew it from (so
+  // Re-Create can revert the cooldown mark if this edition is discarded unpublished).
+  try {
+    await db.execute('ALTER TABLE newspaper_processes ADD COLUMN last_trivia_at TEXT')
+  } catch { /* column already exists */ }
+  try {
+    await db.execute('ALTER TABLE newspaper_editions ADD COLUMN trivia_process_id INTEGER')
+  } catch { /* column already exists */ }
+
   await seedCategories(db)
 }
 
