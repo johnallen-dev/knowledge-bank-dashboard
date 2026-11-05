@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -120,6 +120,13 @@ export function InventoryForm() {
   const isEditingSubmitted = !!editId
   const isResumingDraft = !!draftId
 
+  // A synchronous guard against double-tap/double-click re-entrancy — React's
+  // `disabled` state only takes effect on the next render, which leaves a window
+  // (long enough for a fast double-tap on touch devices) where a second submit can
+  // fire before the button visually disables, racing the first request and hitting
+  // the server's "only a draft sheet can be submitted" guard.
+  const submitInFlight = useRef(false)
+
   const set = useCallback(<K extends keyof InventoryFormState>(key: K, value: InventoryFormState[K]) => {
     setForm(prev => ({ ...prev, [key]: value }))
   }, [])
@@ -178,6 +185,8 @@ export function InventoryForm() {
   }
 
   async function handleSaveDraft() {
+    if (submitInFlight.current) return
+    submitInFlight.current = true
     setSaving(true)
     try {
       const payload = buildPayload()
@@ -198,6 +207,7 @@ export function InventoryForm() {
       toast.error(err instanceof Error ? err.message : 'Failed to save draft')
     } finally {
       setSaving(false)
+      submitInFlight.current = false
     }
   }
 
@@ -215,16 +225,24 @@ export function InventoryForm() {
   }
 
   async function handleSubmitClick() {
-    if (isEditingSubmitted) {
+    if (submitInFlight.current) return
+    submitInFlight.current = true
+    try {
+      if (isEditingSubmitted) {
+        setShowConfirm(true)
+        return
+      }
+      const id = await ensureDraftExists()
+      if (!id) return
       setShowConfirm(true)
-      return
+    } finally {
+      submitInFlight.current = false
     }
-    const id = await ensureDraftExists()
-    if (!id) return
-    setShowConfirm(true)
   }
 
   async function handleConfirmSubmit() {
+    if (submitInFlight.current) return
+    submitInFlight.current = true
     setSubmitting(true)
     try {
       if (isEditingSubmitted && sheetId) {
@@ -248,6 +266,16 @@ export function InventoryForm() {
       })
       const data = await res.json()
       if (!res.ok) {
+        // If this sheet is already past draft — most likely a duplicate submit that
+        // lost a race with itself (e.g. a fast double-tap on a touchscreen) — don't
+        // strand the user on an error for a sheet that's actually fine; it already
+        // made it through, just via a different in-flight request.
+        if (res.status === 409 && String(data.error ?? '').includes('Only a draft sheet')) {
+          toast.success('Already submitted')
+          setShowConfirm(false)
+          router.push('/inventory/summary')
+          return
+        }
         const details = Array.isArray(data.details) ? `: ${data.details.join(' ')}` : ''
         throw new Error((data.error || 'Failed to submit') + details)
       }
@@ -259,6 +287,7 @@ export function InventoryForm() {
       toast.error(err instanceof Error ? err.message : 'Failed to submit')
     } finally {
       setSubmitting(false)
+      submitInFlight.current = false
     }
   }
 
