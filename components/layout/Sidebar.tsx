@@ -1,11 +1,12 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import {
   MessageSquare, Database, PlusCircle, Tag,
   BarChart3, Settings, Home, Upload, FileText, ClipboardList, Key, Link2, Bot,
   ClipboardCheck, UserCog, FileBarChart, Users, LayoutDashboard, ShieldAlert,
-  Newspaper, FolderOpen, Boxes,
+  Newspaper, FolderOpen, Menu, X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -51,25 +52,69 @@ const SECTION_LABELS: Record<NavSection, string> = {
 export function Sidebar() {
   const pathname = usePathname()
   const sections: NavSection[] = ['sections', 'knowledge', 'updates', 'qaReport', 'newspaper', 'inventory', 'claude', 'system']
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  // Close the mobile drawer automatically whenever the route changes.
+  useEffect(() => { setMobileOpen(false) }, [pathname])
 
   return (
-    <aside className="w-64 shrink-0 flex flex-col h-full" style={{ background: 'linear-gradient(180deg, #052e16 0%, #14532d 100%)' }}>
-
-      {/* Greenkey Logo */}
-      <div className="px-5 py-5 border-b border-green-800/60">
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="h-9 w-9 rounded-xl flex items-center justify-center border border-green-400/25 shadow-lg"
-            style={{ background: 'rgba(34,197,94,0.15)' }}>
-            <Key className="h-4.5 w-4.5 text-green-400" style={{ width: 18, height: 18 }} />
-          </div>
-          <div>
-            <p className="font-bold text-white text-base leading-tight">
-              Green<span className="text-green-400">key</span>
-            </p>
-            <p className="text-white/50 text-[9px] uppercase tracking-[0.25em] leading-none mt-0.5">Knowledge Hub</p>
-          </div>
-        </Link>
+    <>
+      {/* Mobile top bar — hidden at lg: and up, where the sidebar is always visible */}
+      <div
+        className="lg:hidden fixed inset-x-0 top-0 z-30 flex items-center gap-3 px-4 h-14 border-b border-green-800/60"
+        style={{ background: '#052e16' }}
+      >
+        <button
+          onClick={() => setMobileOpen(true)}
+          aria-label="Open menu"
+          className="h-9 w-9 rounded-lg flex items-center justify-center text-white/80 hover:text-white hover:bg-green-800/40 transition-colors"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+        <p className="font-bold text-white text-sm">
+          Green<span className="text-green-400">key</span>
+        </p>
       </div>
+
+      {/* Backdrop — only shown while the mobile drawer is open */}
+      {mobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black/50"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      <aside
+        className={cn(
+          'w-64 flex flex-col h-full fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out',
+          mobileOpen ? 'translate-x-0' : '-translate-x-full',
+          'lg:static lg:translate-x-0 lg:shrink-0 lg:z-auto',
+        )}
+        style={{ background: 'linear-gradient(180deg, #052e16 0%, #14532d 100%)' }}
+      >
+
+        {/* Greenkey Logo */}
+        <div className="px-5 py-5 border-b border-green-800/60 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="h-9 w-9 rounded-xl flex items-center justify-center border border-green-400/25 shadow-lg"
+              style={{ background: 'rgba(34,197,94,0.15)' }}>
+              <Key className="h-4.5 w-4.5 text-green-400" style={{ width: 18, height: 18 }} />
+            </div>
+            <div>
+              <p className="font-bold text-white text-base leading-tight">
+                Green<span className="text-green-400">key</span>
+              </p>
+              <p className="text-white/50 text-[9px] uppercase tracking-[0.25em] leading-none mt-0.5">Knowledge Hub</p>
+            </div>
+          </Link>
+          <button
+            onClick={() => setMobileOpen(false)}
+            aria-label="Close menu"
+            className="lg:hidden h-8 w-8 rounded-lg flex items-center justify-center text-white/60 hover:text-white hover:bg-green-800/40 transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-5">
@@ -128,8 +173,8 @@ export function Sidebar() {
           </div>
         )}
       </div>
-    </aside>
-
+      </aside>
+    </>
   )
 }
 
