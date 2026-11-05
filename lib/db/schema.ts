@@ -240,6 +240,84 @@ export async function runMigrations(db: Client): Promise<void> {
     await db.execute('ALTER TABLE newspaper_editions ADD COLUMN trivia_process_id INTEGER')
   } catch { /* column already exists */ }
 
+  // ── Inventory Module ────────────────────────────────────────────────────────────
+  await db.executeMultiple(`
+    CREATE TABLE IF NOT EXISTS inventory_sheets (
+      id                         INTEGER PRIMARY KEY AUTOINCREMENT,
+      sheet_no                   TEXT NOT NULL,
+      status                     TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','submitted','superseded')),
+      personnel_name             TEXT NOT NULL DEFAULT '',
+      inventory_date             TEXT NOT NULL DEFAULT '' CHECK (inventory_date IN ('', '2026-11-09','2026-11-10')),
+      building                   TEXT NOT NULL DEFAULT '',
+      building_is_custom         INTEGER NOT NULL DEFAULT 0,
+      location_category          TEXT NOT NULL DEFAULT '' CHECK (location_category IN ('', 'hotel_storeroom','laundry')),
+      location_option            TEXT NOT NULL DEFAULT '',
+      location_label             TEXT NOT NULL DEFAULT '',
+      linen_owner                TEXT NOT NULL DEFAULT '' CHECK (linen_owner IN ('', 'ours_greenkey','alvas_own','customer','not_sure')),
+      linen_owner_customer_name  TEXT,
+      time_of_count              TEXT,
+      original_sheet_id          INTEGER REFERENCES inventory_sheets(id),
+      needs_review               INTEGER NOT NULL DEFAULT 0,
+      needs_review_note          TEXT,
+      created_by                 TEXT NOT NULL DEFAULT '',
+      created_at                 TEXT NOT NULL DEFAULT (datetime('now')),
+      submitted_by               TEXT,
+      submitted_at               TEXT,
+      last_edited_by             TEXT,
+      last_edited_at             TEXT,
+      updated_at                 TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_inventory_sheets_sheet_no ON inventory_sheets(sheet_no);
+    CREATE INDEX IF NOT EXISTS idx_inventory_sheets_status ON inventory_sheets(status);
+    CREATE INDEX IF NOT EXISTS idx_inventory_sheets_date ON inventory_sheets(inventory_date);
+    CREATE INDEX IF NOT EXISTS idx_inventory_sheets_scope ON inventory_sheets(building, location_label, linen_owner);
+    CREATE INDEX IF NOT EXISTS idx_inventory_sheets_original ON inventory_sheets(original_sheet_id);
+
+    CREATE TABLE IF NOT EXISTS inventory_sheet_items (
+      id             INTEGER PRIMARY KEY AUTOINCREMENT,
+      sheet_id       INTEGER NOT NULL REFERENCES inventory_sheets(id),
+      category       TEXT NOT NULL CHECK (category IN ('bed_linen','towels','kitchen','other')),
+      item_key       TEXT NOT NULL,
+      item_label     TEXT NOT NULL,
+      is_custom_item INTEGER NOT NULL DEFAULT 0,
+      quantity       INTEGER,
+      sort_order     INTEGER NOT NULL DEFAULT 0,
+      created_at     TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at     TEXT NOT NULL DEFAULT (datetime('now')),
+      UNIQUE (sheet_id, item_key)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_inventory_sheet_items_sheet ON inventory_sheet_items(sheet_id);
+    CREATE INDEX IF NOT EXISTS idx_inventory_sheet_items_key ON inventory_sheet_items(item_key);
+
+    CREATE TABLE IF NOT EXISTS inventory_sheet_revisions (
+      id            INTEGER PRIMARY KEY AUTOINCREMENT,
+      sheet_id      INTEGER NOT NULL REFERENCES inventory_sheets(id),
+      snapshot_json TEXT NOT NULL,
+      change_note   TEXT,
+      edited_by     TEXT NOT NULL,
+      edited_at     TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_inventory_sheet_revisions_sheet ON inventory_sheet_revisions(sheet_id);
+
+    CREATE TABLE IF NOT EXISTS inventory_sheet_events (
+      id               INTEGER PRIMARY KEY AUTOINCREMENT,
+      sheet_id         INTEGER NOT NULL REFERENCES inventory_sheets(id),
+      event_type       TEXT NOT NULL CHECK (event_type IN
+                         ('created_draft','submitted','edited','recount_created','superseded','became_latest')),
+      actor            TEXT,
+      related_sheet_id INTEGER REFERENCES inventory_sheets(id),
+      revision_id      INTEGER REFERENCES inventory_sheet_revisions(id),
+      detail_json      TEXT,
+      event_at         TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_inventory_sheet_events_sheet ON inventory_sheet_events(sheet_id);
+    CREATE INDEX IF NOT EXISTS idx_inventory_sheet_events_related ON inventory_sheet_events(related_sheet_id);
+  `)
+
   await seedCategories(db)
 }
 

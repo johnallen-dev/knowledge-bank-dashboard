@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { BookOpen, FileText, Headphones, Monitor, Phone, Users, Key, BookMarked, Database, ClipboardList, Newspaper } from 'lucide-react'
+import { BookOpen, FileText, Headphones, Monitor, Phone, Users, Key, BookMarked, Database, ClipboardList, Newspaper, Boxes } from 'lucide-react'
 
 export default function Home() {
   return (
@@ -136,6 +136,21 @@ export default function Home() {
             <div className="text-center">
               <p className="font-bold text-lg text-white">Process Newspaper</p>
               <p className="text-xs text-white/65 mt-1.5 leading-relaxed">Daily processes, front-page style</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/inventory/inputs"
+            className="flex-1 flex flex-col items-center gap-4 rounded-2xl p-8 border border-white/10 transition-all duration-300 hover:border-sky-400/40 hover:bg-white/10 shadow-xl"
+            style={{ background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(16px)' }}
+          >
+            <div className="h-14 w-14 rounded-xl flex items-center justify-center border border-sky-400/20 transition-colors hover:border-sky-400/50"
+              style={{ background: 'rgba(56,189,248,0.15)' }}>
+              <Boxes className="h-7 w-7 text-sky-400" />
+            </div>
+            <div className="text-center">
+              <p className="font-bold text-lg text-white">Inventory</p>
+              <p className="text-xs text-white/65 mt-1.5 leading-relaxed">Count and track hotel linen</p>
             </div>
           </Link>
         </div>

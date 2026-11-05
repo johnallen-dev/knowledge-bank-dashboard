@@ -5,11 +5,11 @@ import {
   MessageSquare, Database, PlusCircle, Tag,
   BarChart3, Settings, Home, Upload, FileText, ClipboardList, Key, Link2, Bot,
   ClipboardCheck, UserCog, FileBarChart, Users, LayoutDashboard, ShieldAlert,
-  Newspaper, FolderOpen,
+  Newspaper, FolderOpen, Boxes,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-type NavSection = 'sections' | 'knowledge' | 'updates' | 'qaReport' | 'newspaper' | 'claude' | 'system'
+type NavSection = 'sections' | 'knowledge' | 'updates' | 'qaReport' | 'newspaper' | 'inventory' | 'claude' | 'system'
 
 const NAV: { href: string; label: string; icon: React.ElementType; section: NavSection; exact?: boolean }[] = [
   { href: '/guest',                  label: 'Guest Section',      icon: Home,          section: 'sections', exact: true },
@@ -30,6 +30,8 @@ const NAV: { href: string; label: string; icon: React.ElementType; section: NavS
   { href: '/qa-report/escalation-report',      label: 'Escalation Report', icon: ShieldAlert, section: 'qaReport', exact: true },
   { href: '/process-newspaper',          label: 'Newspaper', icon: Newspaper,  section: 'newspaper', exact: true },
   { href: '/process-newspaper/contents', label: 'Contents',  icon: FolderOpen, section: 'newspaper', exact: true },
+  { href: '/inventory/inputs',  label: 'Inputs',  icon: ClipboardList, section: 'inventory', exact: true },
+  { href: '/inventory/summary', label: 'Summary', icon: LayoutDashboard, section: 'inventory', exact: true },
   { href: '/claude',                 label: 'Claude AI',          icon: Bot,           section: 'claude', exact: true },
   { href: '/analytics',              label: 'Analytics',          icon: BarChart3,     section: 'system', exact: true },
   { href: '/settings',               label: 'Settings',           icon: Settings,      section: 'system', exact: true },
@@ -41,13 +43,14 @@ const SECTION_LABELS: Record<NavSection, string> = {
   updates: 'Updates',
   qaReport: 'QA Report',
   newspaper: 'Process Newspaper',
+  inventory: 'Inventory',
   claude: 'Claude AI',
   system: 'System',
 }
 
 export function Sidebar() {
   const pathname = usePathname()
-  const sections: NavSection[] = ['sections', 'knowledge', 'updates', 'qaReport', 'newspaper', 'claude', 'system']
+  const sections: NavSection[] = ['sections', 'knowledge', 'updates', 'qaReport', 'newspaper', 'inventory', 'claude', 'system']
 
   return (
     <aside className="w-64 shrink-0 flex flex-col h-full" style={{ background: 'linear-gradient(180deg, #052e16 0%, #14532d 100%)' }}>
@@ -77,6 +80,8 @@ export function Sidebar() {
           if (!pathname.startsWith('/qa-report') && section === 'qaReport') return null
           if (pathname.startsWith('/process-newspaper') && section !== 'newspaper') return null
           if (!pathname.startsWith('/process-newspaper') && section === 'newspaper') return null
+          if (pathname.startsWith('/inventory') && section !== 'inventory') return null
+          if (!pathname.startsWith('/inventory') && section === 'inventory') return null
           const items = NAV.filter(n => n.section === section)
           return (
             <div key={section} className={si > 0 ? 'pt-1' : undefined}>
@@ -96,7 +101,7 @@ export function Sidebar() {
 
       {/* Section indicator — only shown on Knowledge Bank pages */}
       <div className="border-t border-green-800/60 px-4 py-4">
-        {!pathname.startsWith('/updates') && !pathname.startsWith('/qa-report') && !pathname.startsWith('/process-newspaper') && (
+        {!pathname.startsWith('/updates') && !pathname.startsWith('/qa-report') && !pathname.startsWith('/process-newspaper') && !pathname.startsWith('/inventory') && (
           <div className="flex gap-1.5">
             <Link
               href="/guest"
