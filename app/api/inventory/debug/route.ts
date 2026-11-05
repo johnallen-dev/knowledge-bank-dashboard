@@ -4,45 +4,33 @@ import { getOverviewStats, listSummaryRecords } from '@/lib/db/queries/inventory
 
 export const dynamic = 'force-dynamic'
 
-/** Temporary diagnostic route — bypasses all query-building logic to answer one
- * question: does this connection see all rows, or a stale/partial subset? Remove
- * once the summary-endpoint undercounting bug is diagnosed. */
+/** Temporary diagnostic route — isolates whether calling the real aggregation
+ * functions FIRST (no prior queries in the request) changes their result, vs
+ * calling raw SQL directly. Remove once the summary-endpoint undercounting bug
+ * is diagnosed. */
 export async function GET() {
   try {
+    // Call the real functions FIRST, before anything else touches the DB this request.
+    const realOverviewStatsFirst = await getOverviewStats({})
+    const realRecordsFirst = await listSummaryRecords({})
+
     const db = await getDb()
     const countAll = await db.execute('SELECT COUNT(*) as c FROM inventory_sheets')
-    const listAll = await db.execute('SELECT id, sheet_no, status FROM inventory_sheets ORDER BY id')
     const countSubmitted = await db.execute("SELECT COUNT(*) as c FROM inventory_sheets WHERE status = 'submitted'")
-    const countSubmittedObjForm = await db.execute({
-      sql: "SELECT COUNT(*) as c FROM inventory_sheets s WHERE s.status = 'submitted'",
-      args: [],
-    })
-    const countSubmittedWithJoin = await db.execute({
-      sql: `SELECT SUM(si.quantity) as total_pieces, COUNT(si.quantity) as total_items
-            FROM inventory_sheet_items si JOIN inventory_sheets s ON s.id = si.sheet_id
-            WHERE s.status = 'submitted' AND si.quantity IS NOT NULL`,
-      args: [],
-    })
-    const envInfo = {
-      hasTursoUrl: !!process.env.TURSO_DATABASE_URL,
-      hasTursoToken: !!process.env.TURSO_AUTH_TOKEN,
-      tursoUrlPrefix: process.env.TURSO_DATABASE_URL ? process.env.TURSO_DATABASE_URL.slice(0, 20) : null,
-      vercelRegion: process.env.VERCEL_REGION ?? null,
-      vercelEnv: process.env.VERCEL_ENV ?? null,
-    }
-    const realOverviewStats = await getOverviewStats({})
-    const realRecords = await listSummaryRecords({})
+
+    // Call them again, now that other queries have run in this request.
+    const realOverviewStatsSecond = await getOverviewStats({})
+    const realRecordsSecond = await listSummaryRecords({})
 
     return NextResponse.json({
+      realOverviewStatsFirst,
+      realRecordsFirstTotal: realRecordsFirst.total,
+      realRecordsFirstSheetNos: realRecordsFirst.sheets.map(s => s.sheet_no),
       countAll: countAll.rows[0],
       countSubmitted: countSubmitted.rows[0],
-      countSubmittedObjForm: countSubmittedObjForm.rows[0],
-      countSubmittedWithJoin: countSubmittedWithJoin.rows[0],
-      realOverviewStats,
-      realRecordsTotal: realRecords.total,
-      realRecordsSheetNos: realRecords.sheets.map(s => s.sheet_no),
-      listAll: listAll.rows,
-      envInfo,
+      realOverviewStatsSecond,
+      realRecordsSecondTotal: realRecordsSecond.total,
+      realRecordsSecondSheetNos: realRecordsSecond.sheets.map(s => s.sheet_no),
     })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })
