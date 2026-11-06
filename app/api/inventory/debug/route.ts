@@ -1,36 +1,31 @@
 import { NextResponse } from 'next/server'
 import { getDb } from '@/lib/db/client'
-import { getOverviewStats, listSummaryRecords } from '@/lib/db/queries/inventory'
+import { getOverviewStats, buildAggregationWhere } from '@/lib/db/queries/inventory'
 
 export const dynamic = 'force-dynamic'
 
-/** Temporary diagnostic route — isolates whether calling the real aggregation
- * functions FIRST (no prior queries in the request) changes their result, vs
- * calling raw SQL directly. Remove once the summary-endpoint undercounting bug
- * is diagnosed. */
+/** Temporary diagnostic route — prints the EXACT clause/args buildAggregationWhere
+ * constructs, and runs that exact SQL both via the real function and inline, to find
+ * where the two diverge. Remove once the summary-endpoint undercounting bug is
+ * diagnosed. */
 export async function GET() {
   try {
-    // Call the real functions FIRST, before anything else touches the DB this request.
-    const realOverviewStatsFirst = await getOverviewStats({})
-    const realRecordsFirst = await listSummaryRecords({})
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const built = buildAggregationWhere({} as any, 's')
 
     const db = await getDb()
-    const countAll = await db.execute('SELECT COUNT(*) as c FROM inventory_sheets')
-    const countSubmitted = await db.execute("SELECT COUNT(*) as c FROM inventory_sheets WHERE status = 'submitted'")
+    const inlineWithBuiltClause = await db.execute({
+      sql: `SELECT COUNT(*) as total_submitted FROM inventory_sheets s WHERE ${built.clause}`,
+      args: built.args,
+    })
 
-    // Call them again, now that other queries have run in this request.
-    const realOverviewStatsSecond = await getOverviewStats({})
-    const realRecordsSecond = await listSummaryRecords({})
+    const realOverviewStats = await getOverviewStats({})
 
     return NextResponse.json({
-      realOverviewStatsFirst,
-      realRecordsFirstTotal: realRecordsFirst.total,
-      realRecordsFirstSheetNos: realRecordsFirst.sheets.map(s => s.sheet_no),
-      countAll: countAll.rows[0],
-      countSubmitted: countSubmitted.rows[0],
-      realOverviewStatsSecond,
-      realRecordsSecondTotal: realRecordsSecond.total,
-      realRecordsSecondSheetNos: realRecordsSecond.sheets.map(s => s.sheet_no),
+      builtClause: built.clause,
+      builtArgs: built.args,
+      inlineWithBuiltClause: inlineWithBuiltClause.rows[0],
+      realOverviewStats,
     })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })

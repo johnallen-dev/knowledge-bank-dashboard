@@ -460,7 +460,7 @@ interface AggregationFilters {
   personnel?: string | string[]
 }
 
-function buildAggregationWhere(filters: AggregationFilters, alias: string): { clause: string; args: string[] } {
+export function buildAggregationWhere(filters: AggregationFilters, alias: string): { clause: string; args: string[] } {
   const clauses: string[] = [`${alias}.status = 'submitted'`]
   const args: string[] = []
   if (filters.inventory_date) { clauses.push(`${alias}.inventory_date = ?`); args.push(filters.inventory_date) }
