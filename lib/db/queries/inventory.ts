@@ -460,7 +460,7 @@ interface AggregationFilters {
   personnel?: string | string[]
 }
 
-export function buildAggregationWhere(filters: AggregationFilters, alias: string): { clause: string; args: string[] } {
+function buildAggregationWhere(filters: AggregationFilters, alias: string): { clause: string; args: string[] } {
   const clauses: string[] = [`${alias}.status = 'submitted'`]
   const args: string[] = []
   if (filters.inventory_date) { clauses.push(`${alias}.inventory_date = ?`); args.push(filters.inventory_date) }
@@ -483,41 +483,61 @@ export interface OverviewStats {
   needingReview: number
 }
 
+function firstCell(rows: unknown[]): number {
+  if (!rows[0]) return 0
+  const row = rows[0] as Record<string, unknown>
+  const value = Object.values(row)[0]
+  return value == null ? 0 : Number(value)
+}
+
+/** Each stat is its own standalone query with its own fresh args array — deliberately
+ * not packed into a shared multi-aggregate SELECT, after a packed version was found
+ * to intermittently undercount in production in a way that couldn't be reproduced by
+ * running the identical SQL text inline outside this function. Simpler and easier to
+ * reason about either way. */
 export async function getOverviewStats(filters: AggregationFilters): Promise<OverviewStats> {
   const db = await getDb()
+
+  async function scalar(sql: string, args: string[]): Promise<number> {
+    const result = await db.execute({ sql, args: [...args] })
+    return firstCell(result.rows)
+  }
+
   const { clause, args } = buildAggregationWhere(filters, 's')
 
-  const sheetAgg = await db.execute({
-    sql: `SELECT
-            COUNT(*) as total_submitted,
-            COUNT(DISTINCT building) as total_buildings,
-            COUNT(DISTINCT building || '|' || location_label) as total_locations,
-            SUM(CASE WHEN inventory_date = '2026-11-09' THEN 1 ELSE 0 END) as sheets_nov9,
-            SUM(CASE WHEN inventory_date = '2026-11-10' THEN 1 ELSE 0 END) as sheets_nov10,
-            SUM(CASE WHEN needs_review = 1 THEN 1 ELSE 0 END) as needing_review
-          FROM inventory_sheets s WHERE ${clause}`,
-    args,
-  })
-  const itemAgg = await db.execute({
-    sql: `SELECT SUM(si.quantity) as total_pieces, COUNT(si.quantity) as total_items
-          FROM inventory_sheet_items si JOIN inventory_sheets s ON s.id = si.sheet_id
-          WHERE ${clause} AND si.quantity IS NOT NULL`,
-    args,
-  })
-  const draftsResult = await db.execute(`SELECT COUNT(*) as c FROM inventory_sheets WHERE status = 'draft'`)
+  const [
+    totalSubmitted,
+    totalBuildings,
+    totalLocations,
+    sheetsNov9,
+    sheetsNov10,
+    needingReview,
+    totalPiecesCounted,
+    totalItemsCounted,
+    draftsAwaiting,
+  ] = await Promise.all([
+    scalar(`SELECT COUNT(*) FROM inventory_sheets s WHERE ${clause}`, args),
+    scalar(`SELECT COUNT(DISTINCT s.building) FROM inventory_sheets s WHERE ${clause}`, args),
+    scalar(`SELECT COUNT(DISTINCT s.building || '|' || s.location_label) FROM inventory_sheets s WHERE ${clause}`, args),
+    scalar(`SELECT COUNT(*) FROM inventory_sheets s WHERE ${clause} AND s.inventory_date = '2026-11-09'`, args),
+    scalar(`SELECT COUNT(*) FROM inventory_sheets s WHERE ${clause} AND s.inventory_date = '2026-11-10'`, args),
+    scalar(`SELECT COUNT(*) FROM inventory_sheets s WHERE ${clause} AND s.needs_review = 1`, args),
+    scalar(
+      `SELECT SUM(si.quantity) FROM inventory_sheet_items si JOIN inventory_sheets s ON s.id = si.sheet_id
+       WHERE ${clause} AND si.quantity IS NOT NULL`,
+      args,
+    ),
+    scalar(
+      `SELECT COUNT(si.quantity) FROM inventory_sheet_items si JOIN inventory_sheets s ON s.id = si.sheet_id
+       WHERE ${clause} AND si.quantity IS NOT NULL`,
+      args,
+    ),
+    scalar(`SELECT COUNT(*) FROM inventory_sheets WHERE status = 'draft'`, []),
+  ])
 
-  const sRow = sheetAgg.rows[0] as Record<string, unknown>
-  const iRow = itemAgg.rows[0] as Record<string, unknown>
   return {
-    totalSubmitted: Number(sRow.total_submitted ?? 0),
-    totalItemsCounted: Number(iRow.total_items ?? 0),
-    totalPiecesCounted: Number(iRow.total_pieces ?? 0),
-    totalBuildings: Number(sRow.total_buildings ?? 0),
-    totalLocations: Number(sRow.total_locations ?? 0),
-    sheetsNov9: Number(sRow.sheets_nov9 ?? 0),
-    sheetsNov10: Number(sRow.sheets_nov10 ?? 0),
-    draftsAwaiting: Number((draftsResult.rows[0] as Record<string, unknown>).c ?? 0),
-    needingReview: Number(sRow.needing_review ?? 0),
+    totalSubmitted, totalItemsCounted, totalPiecesCounted, totalBuildings, totalLocations,
+    sheetsNov9, sheetsNov10, draftsAwaiting, needingReview,
   }
 }
 
@@ -533,13 +553,14 @@ export async function getItemBreakdown(filters: AggregationFilters): Promise<Ite
   const db = await getDb()
   const { clause, args } = buildAggregationWhere(filters, 's')
   const { rows } = await db.execute({
-    sql: `SELECT si.item_key, MAX(si.item_label) as item_label, si.category,
-                 SUM(si.quantity) as total_pieces, COUNT(si.quantity) as sheets_counted
-          FROM inventory_sheet_items si JOIN inventory_sheets s ON s.id = si.sheet_id
-          WHERE ${clause} AND si.quantity IS NOT NULL
+    sql: `SELECT si.item_key AS item_key, MAX(si.item_label) AS item_label, si.category AS category,
+                 SUM(si.quantity) AS total_pieces, COUNT(si.quantity) AS sheets_counted
+          FROM inventory_sheet_items AS si
+          INNER JOIN inventory_sheets AS s ON s.id = si.sheet_id
+          WHERE si.quantity IS NOT NULL AND ${clause}
           GROUP BY si.item_key, si.category
-          ORDER BY si.category, si.item_key`,
-    args,
+          ORDER BY si.category ASC, si.item_key ASC`,
+    args: [...args],
   })
   return rows.map(r => {
     const row = r as Record<string, unknown>
@@ -559,13 +580,14 @@ export async function getBuildingLocationBreakdown(filters: AggregationFilters):
   const db = await getDb()
   const { clause, args } = buildAggregationWhere(filters, 's')
   const { rows } = await db.execute({
-    sql: `SELECT s.building, s.location_label, s.linen_owner, COUNT(DISTINCT s.id) as sheet_count,
-                 COALESCE(SUM(si.quantity), 0) as total_pieces
-          FROM inventory_sheets s LEFT JOIN inventory_sheet_items si ON si.sheet_id = s.id AND si.quantity IS NOT NULL
+    sql: `SELECT s.building AS building, s.location_label AS location_label, s.linen_owner AS linen_owner,
+                 COUNT(DISTINCT s.id) AS sheet_count, COALESCE(SUM(si.quantity), 0) AS total_pieces
+          FROM inventory_sheets AS s
+          LEFT JOIN inventory_sheet_items AS si ON si.sheet_id = s.id AND si.quantity IS NOT NULL
           WHERE ${clause}
           GROUP BY s.building, s.location_label, s.linen_owner
-          ORDER BY s.building, s.location_label`,
-    args,
+          ORDER BY s.building ASC, s.location_label ASC`,
+    args: [...args],
   })
   return rows.map(r => {
     const row = r as Record<string, unknown>
@@ -581,28 +603,30 @@ export async function listSummaryRecords(
 ): Promise<{ sheets: (InventorySheet & { total_pieces: number })[]; total: number }> {
   const db = await getDb()
   const clauses: string[] = []
-  const args: (string | number)[] = []
+  const baseArgs: (string | number)[] = []
   const statuses = filters.status ? (Array.isArray(filters.status) ? filters.status : [filters.status]) : ['submitted', 'superseded']
   clauses.push(`s.status IN (${statuses.map(() => '?').join(',')})`)
-  args.push(...statuses)
-  if (filters.inventory_date) { clauses.push('s.inventory_date = ?'); args.push(filters.inventory_date) }
-  addInClause(clauses, args, 's.building', filters.building)
-  if (filters.location_label) { clauses.push('s.location_label LIKE ?'); args.push(`%${filters.location_label}%`) }
-  addInClause(clauses, args, 's.linen_owner', filters.linen_owner)
-  addInClause(clauses, args, 's.personnel_name', filters.personnel)
+  baseArgs.push(...statuses)
+  if (filters.inventory_date) { clauses.push('s.inventory_date = ?'); baseArgs.push(filters.inventory_date) }
+  addInClause(clauses, baseArgs, 's.building', filters.building)
+  if (filters.location_label) { clauses.push('s.location_label LIKE ?'); baseArgs.push(`%${filters.location_label}%`) }
+  addInClause(clauses, baseArgs, 's.linen_owner', filters.linen_owner)
+  addInClause(clauses, baseArgs, 's.personnel_name', filters.personnel)
   if (filters.needs_review) { clauses.push('s.needs_review = 1') }
   const where = `WHERE ${clauses.join(' AND ')}`
 
-  const { rows: countRows } = await db.execute({ sql: `SELECT COUNT(*) as c FROM inventory_sheets s ${where}`, args })
-  const total = Number((countRows[0] as Record<string, unknown>).c)
+  const countResult = await db.execute({ sql: `SELECT COUNT(s.id) AS matching_count FROM inventory_sheets s ${where}`, args: [...baseArgs] })
+  const total = firstCell(countResult.rows)
 
   const page = filters.page ?? 1
   const limit = filters.limit ?? 20
   const offset = (page - 1) * limit
   const { rows } = await db.execute({
-    sql: `SELECT s.*, COALESCE((SELECT SUM(quantity) FROM inventory_sheet_items WHERE sheet_id = s.id AND quantity IS NOT NULL), 0) as total_pieces
+    sql: `SELECT s.*, (
+            SELECT COALESCE(SUM(quantity), 0) FROM inventory_sheet_items WHERE sheet_id = s.id AND quantity IS NOT NULL
+          ) AS total_pieces
           FROM inventory_sheets s ${where} ORDER BY s.created_at DESC LIMIT ? OFFSET ?`,
-    args: [...args, limit, offset],
+    args: [...baseArgs, limit, offset],
   })
   return {
     sheets: rows.map(r => {
@@ -615,19 +639,28 @@ export async function listSummaryRecords(
 
 export async function getDistinctBuildings(): Promise<string[]> {
   const db = await getDb()
-  const { rows } = await db.execute(`SELECT DISTINCT building FROM inventory_sheets WHERE building != '' ORDER BY building`)
+  const { rows } = await db.execute({
+    sql: `SELECT DISTINCT building AS building FROM inventory_sheets WHERE building <> '' ORDER BY building ASC`,
+    args: [],
+  })
   return rows.map(r => String((r as Record<string, unknown>).building))
 }
 
 export async function getDistinctLocationLabels(): Promise<string[]> {
   const db = await getDb()
-  const { rows } = await db.execute(`SELECT DISTINCT location_label FROM inventory_sheets WHERE location_label != '' ORDER BY location_label`)
+  const { rows } = await db.execute({
+    sql: `SELECT DISTINCT location_label AS location_label FROM inventory_sheets WHERE location_label <> '' ORDER BY location_label ASC`,
+    args: [],
+  })
   return rows.map(r => String((r as Record<string, unknown>).location_label))
 }
 
 export async function getDistinctPersonnel(): Promise<string[]> {
   const db = await getDb()
-  const { rows } = await db.execute(`SELECT DISTINCT personnel_name FROM inventory_sheets WHERE personnel_name != '' ORDER BY personnel_name`)
+  const { rows } = await db.execute({
+    sql: `SELECT DISTINCT personnel_name AS personnel_name FROM inventory_sheets WHERE personnel_name <> '' ORDER BY personnel_name ASC`,
+    args: [],
+  })
   return rows.map(r => String((r as Record<string, unknown>).personnel_name))
 }
 

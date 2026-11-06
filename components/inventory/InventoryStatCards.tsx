@@ -44,7 +44,7 @@ export function InventoryStatCards({ filters }: { filters: SummaryFilters }) {
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       <StatCard label="Sheets Submitted" value={stats.totalSubmitted} />
       <StatCard label="Pieces Counted" value={stats.totalPiecesCounted} sub={`${stats.totalItemsCounted} item lines`} />
-      <StatCard label="Buildings Covered" value={stats.totalBuildings} />
+      <StatCard label="Properties Covered" value={stats.totalBuildings} />
       <StatCard label="Locations Covered" value={stats.totalLocations} />
       <StatCard label="Nov 9 Sheets" value={stats.sheetsNov9} />
       <StatCard label="Nov 10 Sheets" value={stats.sheetsNov10} />

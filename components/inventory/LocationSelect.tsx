@@ -21,7 +21,7 @@ export function LocationSelect({ category, option, label, onChangeCategory, onCh
   return (
     <div className="space-y-3">
       <div className="space-y-2">
-        <Label>Place in the Building *</Label>
+        <Label>Area *</Label>
         <div className="grid grid-cols-2 gap-2">
           {CATEGORY_KEYS.map(key => (
             <button

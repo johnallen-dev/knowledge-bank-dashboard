@@ -43,9 +43,9 @@ export function InventoryFilters({ filters, onChange }: InventoryFiltersProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
       <div className="space-y-2">
-        <Label>Building</Label>
+        <Label>Property</Label>
         <MultiSelect
-          label="Buildings"
+          label="Properties"
           options={options.buildings.map(b => ({ value: b, label: b }))}
           selected={filters.buildings}
           onChange={v => set('buildings', v)}

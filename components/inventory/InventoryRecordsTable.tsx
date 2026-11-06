@@ -66,7 +66,7 @@ export function InventoryRecordsTable({ filters }: { filters: SummaryFilters }) 
             <table className="w-full text-sm">
               <thead className="bg-muted/50 border-b">
                 <tr>
-                  {['Sheet No.', 'Date', 'Time', 'Personnel', 'Building', 'Location', 'Owner', 'Total Pieces', 'Status', ''].map(h => (
+                  {['Sheet No.', 'Date', 'Time', 'Personnel', 'Property', 'Location', 'Owner', 'Total Pieces', 'Status', ''].map(h => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide whitespace-nowrap">{h}</th>
                   ))}
                 </tr>

@@ -87,7 +87,7 @@ export function InventorySheetDetail({ sheetId, onClose, onChanged }: { sheetId:
             <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
               <Field label="Name" value={data.sheet.personnel_name} />
               <Field label="Date" value={data.sheet.inventory_date} />
-              <Field label="Building" value={data.sheet.building} />
+              <Field label="Property" value={data.sheet.building} />
               <Field label="Location" value={data.sheet.location_label} />
               <Field label="Owner" value={data.sheet.linen_owner ? LINEN_OWNER_LABELS[data.sheet.linen_owner as LinenOwner] : '—'} />
               {data.sheet.linen_owner_customer_name && <Field label="Customer" value={data.sheet.linen_owner_customer_name} />}

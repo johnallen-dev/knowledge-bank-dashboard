@@ -31,7 +31,7 @@ export function SubmitConfirmModal({
         </div>
 
         <div className="text-sm space-y-1 text-muted-foreground">
-          <p><span className="text-foreground font-medium">Building:</span> {building || '—'}</p>
+          <p><span className="text-foreground font-medium">Property:</span> {building || '—'}</p>
           <p><span className="text-foreground font-medium">Location:</span> {locationLabel || '—'}</p>
           <p><span className="text-foreground font-medium">Owner:</span> {ownerLabel || '—'}</p>
           <p><span className="text-foreground font-medium">Total Pieces Counted:</span> {totalPieces}</p>

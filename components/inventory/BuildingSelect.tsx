@@ -17,26 +17,26 @@ export function BuildingSelect({ building, isOther, otherName, onChangeBuilding,
 
   return (
     <div className="space-y-2">
-      <Label>Building *</Label>
+      <Label>Property *</Label>
       <Select
         value={value}
         onValueChange={v => onChangeBuilding(v === OTHER_BUILDING_VALUE ? '' : v, v === OTHER_BUILDING_VALUE)}
       >
         <SelectTrigger>
-          <SelectValue placeholder="Select building…" />
+          <SelectValue placeholder="Select property…" />
         </SelectTrigger>
         <SelectContent>
           {BUILDING_OPTIONS.map(b => (
             <SelectItem key={b} value={b}>{b}</SelectItem>
           ))}
-          <SelectItem value={OTHER_BUILDING_VALUE}>Other building…</SelectItem>
+          <SelectItem value={OTHER_BUILDING_VALUE}>Other property…</SelectItem>
         </SelectContent>
       </Select>
       {isOther && (
         <Input
           value={otherName}
           onChange={e => onChangeOtherName(e.target.value)}
-          placeholder="Enter building name"
+          placeholder="Enter property name"
         />
       )}
     </div>
