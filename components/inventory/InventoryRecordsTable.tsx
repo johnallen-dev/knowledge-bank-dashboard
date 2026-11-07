@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button'
 import { RotateCcw } from 'lucide-react'
 import { StatusBadge } from './StatusBadge'
 import { InventorySheetDetail } from './InventorySheetDetail'
+import { EditSheetButton } from './EditSheetButton'
+import { DeleteSheetButton } from './DeleteSheetButton'
 import { LINEN_OWNER_LABELS } from '@/lib/inventory/types'
 import type { InventorySheet, LinenOwner, DisplayStatus } from '@/lib/inventory/types'
 import type { SummaryFilters } from './InventoryFilters'
@@ -22,7 +24,7 @@ function toQuery(filters: SummaryFilters, page: number, limit: number): string {
   return params.toString()
 }
 
-export function InventoryRecordsTable({ filters }: { filters: SummaryFilters }) {
+export function InventoryRecordsTable({ filters, onDataChanged }: { filters: SummaryFilters; onDataChanged?: () => void }) {
   const [rows, setRows] = useState<RecordRow[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -48,12 +50,17 @@ export function InventoryRecordsTable({ filters }: { filters: SummaryFilters }) 
   useEffect(() => { setPage(1) }, [filters])
   useEffect(() => { fetchRows() }, [fetchRows])
 
+  function handleChanged() {
+    fetchRows()
+    onDataChanged?.()
+  }
+
   const totalPages = Math.max(1, Math.ceil(total / limit))
 
   return (
     <div className="space-y-3">
       {openSheetId != null && (
-        <InventorySheetDetail sheetId={openSheetId} onClose={() => setOpenSheetId(null)} onChanged={fetchRows} />
+        <InventorySheetDetail sheetId={openSheetId} onClose={() => setOpenSheetId(null)} onChanged={handleChanged} />
       )}
 
       {loading ? (
@@ -90,7 +97,12 @@ export function InventoryRecordsTable({ filters }: { filters: SummaryFilters }) 
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-3" />
+                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                      <div className="flex items-center gap-1">
+                        {r.status === 'submitted' && <EditSheetButton sheetId={r.id} />}
+                        <DeleteSheetButton id={r.id} sheetNo={r.sheet_no} onDeleted={handleChanged} />
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

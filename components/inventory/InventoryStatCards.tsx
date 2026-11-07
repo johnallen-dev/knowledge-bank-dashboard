@@ -11,13 +11,12 @@ interface OverviewStats {
   totalLocations: number
   sheetsNov9: number
   sheetsNov10: number
-  draftsAwaiting: number
   needingReview: number
 }
 
 const EMPTY: OverviewStats = {
   totalSubmitted: 0, totalItemsCounted: 0, totalPiecesCounted: 0, totalBuildings: 0,
-  totalLocations: 0, sheetsNov9: 0, sheetsNov10: 0, draftsAwaiting: 0, needingReview: 0,
+  totalLocations: 0, sheetsNov9: 0, sheetsNov10: 0, needingReview: 0,
 }
 
 function toQuery(filters: SummaryFilters): string {
@@ -30,7 +29,7 @@ function toQuery(filters: SummaryFilters): string {
   return params.toString()
 }
 
-export function InventoryStatCards({ filters }: { filters: SummaryFilters }) {
+export function InventoryStatCards({ filters, refreshKey }: { filters: SummaryFilters; refreshKey?: number }) {
   const [stats, setStats] = useState<OverviewStats>(EMPTY)
 
   useEffect(() => {
@@ -38,7 +37,7 @@ export function InventoryStatCards({ filters }: { filters: SummaryFilters }) {
       .then(res => res.json())
       .then(setStats)
       .catch(() => setStats(EMPTY))
-  }, [filters])
+  }, [filters, refreshKey])
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -48,7 +47,6 @@ export function InventoryStatCards({ filters }: { filters: SummaryFilters }) {
       <StatCard label="Locations Covered" value={stats.totalLocations} />
       <StatCard label="Nov 9 Sheets" value={stats.sheetsNov9} />
       <StatCard label="Nov 10 Sheets" value={stats.sheetsNov10} />
-      <StatCard label="Drafts Awaiting" value={stats.draftsAwaiting} color="text-amber-600" />
       <StatCard label="Needing Review" value={stats.needingReview} color={stats.needingReview > 0 ? 'text-red-600' : 'text-foreground'} />
     </div>
   )

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {
-  getSheetById, getSheetItems, updateDraftSheet, deleteDraftSheet,
+  getSheetById, getSheetItems, updateDraftSheet, deleteSheetHard,
   getRecountOf, getRecountedBy,
 } from '@/lib/db/queries/inventory'
 import { getDisplayStatus } from '@/lib/inventory/statusLabel'
 import { normalizeItemsForSave } from '@/lib/inventory/items'
+import { isValidInventoryPassword } from '@/lib/inventory/auth'
 import type { SheetInput } from '@/lib/inventory/types'
 
 export const dynamic = 'force-dynamic'
@@ -62,11 +63,17 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+  const authHeader = req.headers.get('authorization') ?? ''
+  const password = authHeader.replace(/^Bearer\s+/i, '')
+  if (!isValidInventoryPassword(password)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
     const id = Number(params.id)
-    const ok = await deleteDraftSheet(id)
-    if (!ok) return NextResponse.json({ error: 'Sheet not found or is no longer a draft' }, { status: 409 })
+    const ok = await deleteSheetHard(id)
+    if (!ok) return NextResponse.json({ error: 'Sheet not found' }, { status: 404 })
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error('[DELETE /api/inventory/sheets/[id]]', err)

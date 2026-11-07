@@ -6,12 +6,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Card, CardContent } from '@/components/ui/card'
-import { Save, Send, FileEdit } from 'lucide-react'
+import { Send, FileEdit } from 'lucide-react'
 import { BuildingSelect } from './BuildingSelect'
 import { LocationSelect } from './LocationSelect'
 import { OwnershipSelect } from './OwnershipSelect'
-import { RecountSelector } from './RecountSelector'
 import { ItemQuantityTable } from './ItemQuantityTable'
 import { RulesPanel } from './RulesPanel'
 import { SubmitConfirmModal } from './SubmitConfirmModal'
@@ -87,6 +85,8 @@ function sheetToForm(sheet: InventorySheet, items: InventorySheetItem[]): Invent
     customerName: sheet.linen_owner_customer_name ?? '',
     items: itemsFromServer(items),
     time_of_count: sheet.time_of_count ?? '',
+    // Preserved read-only from the existing record when editing — a sheet that was
+    // already a recount keeps that link; there's no UI to create a new one anymore.
     isRecount: sheet.original_sheet_id != null,
     original_sheet_id: sheet.original_sheet_id,
     originalSheetLabel: '',
@@ -103,40 +103,34 @@ function toSheetInputItems(items: ItemRow[]): SheetInput['items'] {
 export function InventoryForm() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const draftId = searchParams.get('draftId')
   const editId = searchParams.get('editId')
 
   const [form, setForm] = useState<InventoryFormState>(emptyForm)
   const [sheetId, setSheetId] = useState<number | null>(null)
   const [sheetNo, setSheetNo] = useState<string | null>(null)
   const [displayStatus, setDisplayStatus] = useState<'draft' | 'submitted' | 'recounted' | 'superseded'>('draft')
-  const [loading, setLoading] = useState(!!draftId || !!editId)
-  const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(!!editId)
   const [submitting, setSubmitting] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [editAuthed, setEditAuthed] = useState(false)
-  const [drafts, setDrafts] = useState<InventorySheet[]>([])
 
   const isEditingSubmitted = !!editId
-  const isResumingDraft = !!draftId
 
   // A synchronous guard against double-tap/double-click re-entrancy — React's
   // `disabled` state only takes effect on the next render, which leaves a window
   // (long enough for a fast double-tap on touch devices) where a second submit can
-  // fire before the button visually disables, racing the first request and hitting
-  // the server's "only a draft sheet can be submitted" guard.
+  // fire before the button visually disables, racing the first request.
   const submitInFlight = useRef(false)
 
   const set = useCallback(<K extends keyof InventoryFormState>(key: K, value: InventoryFormState[K]) => {
     setForm(prev => ({ ...prev, [key]: value }))
   }, [])
 
-  // Load a draft or a submitted sheet to edit.
+  // Load a submitted sheet to edit.
   useEffect(() => {
-    const id = draftId ?? editId
-    if (!id) return
+    if (!editId) return
     setLoading(true)
-    fetch(`/api/inventory/sheets/${id}`)
+    fetch(`/api/inventory/sheets/${editId}`)
       .then(res => res.json())
       .then(data => {
         if (!data.sheet) { toast.error('Sheet not found'); return }
@@ -147,16 +141,7 @@ export function InventoryForm() {
       })
       .catch(() => toast.error('Failed to load sheet'))
       .finally(() => setLoading(false))
-  }, [draftId, editId])
-
-  // List drafts available to resume, only on a fresh (non-loaded) form.
-  useEffect(() => {
-    if (draftId || editId) return
-    fetch('/api/inventory/sheets?status=draft&limit=10')
-      .then(res => res.json())
-      .then(data => setDrafts(data.sheets ?? []))
-      .catch(() => setDrafts([]))
-  }, [draftId, editId])
+  }, [editId])
 
   const totalPieces = useMemo(
     () => form.items.reduce((sum, i) => sum + (i.qty ?? 0), 0),
@@ -181,33 +166,6 @@ export function InventoryForm() {
       time_of_count: form.time_of_count || null,
       original_sheet_id: form.original_sheet_id,
       items: toSheetInputItems(form.items),
-    }
-  }
-
-  async function handleSaveDraft() {
-    if (submitInFlight.current) return
-    submitInFlight.current = true
-    setSaving(true)
-    try {
-      const payload = buildPayload()
-      const res = sheetId
-        ? await fetch(`/api/inventory/sheets/${sheetId}`, {
-            method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-          })
-        : await fetch('/api/inventory/sheets', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-          })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to save draft')
-      setSheetId(data.sheet.id)
-      setSheetNo(data.sheet.sheet_no)
-      setDisplayStatus(getDisplayStatus(data.sheet))
-      toast.success('Draft saved')
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to save draft')
-    } finally {
-      setSaving(false)
-      submitInFlight.current = false
     }
   }
 
@@ -344,7 +302,7 @@ export function InventoryForm() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h2 className="text-lg font-semibold">
-            {isEditingSubmitted ? 'Edit Submitted Sheet' : isResumingDraft ? 'Continue Draft' : 'New Inventory Count'}
+            {isEditingSubmitted ? 'Edit Submitted Sheet' : 'New Inventory Count'}
           </h2>
           <p className="text-sm text-muted-foreground">Count and record hotel linen inventory.</p>
         </div>
@@ -355,21 +313,6 @@ export function InventoryForm() {
           </div>
         )}
       </div>
-
-      {!draftId && !editId && drafts.length > 0 && (
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-sm font-medium mb-2">Resume a draft</p>
-            <div className="flex flex-wrap gap-2">
-              {drafts.map(d => (
-                <Button key={d.id} variant="outline" size="sm" onClick={() => router.push(`/inventory/inputs?draftId=${d.id}`)}>
-                  {d.sheet_no} — {d.building || 'Untitled'}
-                </Button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
@@ -437,27 +380,8 @@ export function InventoryForm() {
         </div>
       </div>
 
-      {!isEditingSubmitted && (
-        <RecountSelector
-          isRecount={form.isRecount}
-          originalSheetId={form.original_sheet_id}
-          originalSheetLabel={form.originalSheetLabel}
-          onToggle={isRecount => { set('isRecount', isRecount); if (!isRecount) { set('original_sheet_id', null); set('originalSheetLabel', '') } }}
-          onSelect={sheet => {
-            set('original_sheet_id', sheet.id)
-            set('originalSheetLabel', `${sheet.sheet_no} — ${sheet.building}, ${sheet.location_label}`)
-          }}
-        />
-      )}
-
       <div className="flex gap-3 pt-2">
-        {!isEditingSubmitted && (
-          <Button type="button" variant="outline" onClick={handleSaveDraft} disabled={saving} className="gap-2">
-            <Save className="h-4 w-4" />
-            {saving ? 'Saving…' : 'Save as Draft'}
-          </Button>
-        )}
-        <Button type="button" onClick={handleSubmitClick} disabled={saving} className="gap-2">
+        <Button type="button" onClick={handleSubmitClick} className="gap-2">
           {isEditingSubmitted ? <FileEdit className="h-4 w-4" /> : <Send className="h-4 w-4" />}
           {isEditingSubmitted ? 'Save Changes' : 'Submit Inventory'}
         </Button>

@@ -197,9 +197,17 @@ export async function listSheets(filters: SheetFilters): Promise<{ sheets: Inven
   return { sheets: rows.map(r => toSheet(r as Record<string, unknown>)), total }
 }
 
-export async function deleteDraftSheet(id: number): Promise<boolean> {
+/** Password-gated hard delete from the Summary records table — works on a sheet in
+ * any status, not just drafts. Any other sheet whose original_sheet_id points at this
+ * one is unlinked first (rather than left dangling), and the sheet's own items,
+ * revisions, and events are cleaned up alongside it. */
+export async function deleteSheetHard(id: number): Promise<boolean> {
   const db = await getDb()
-  const result = await db.execute({ sql: `DELETE FROM inventory_sheets WHERE id = ? AND status = 'draft'`, args: [id] })
+  await db.execute({ sql: `UPDATE inventory_sheets SET original_sheet_id = NULL WHERE original_sheet_id = ?`, args: [id] })
+  await db.execute({ sql: `DELETE FROM inventory_sheet_events WHERE sheet_id = ?`, args: [id] })
+  await db.execute({ sql: `DELETE FROM inventory_sheet_revisions WHERE sheet_id = ?`, args: [id] })
+  await db.execute({ sql: `DELETE FROM inventory_sheet_items WHERE sheet_id = ?`, args: [id] })
+  const result = await db.execute({ sql: `DELETE FROM inventory_sheets WHERE id = ?`, args: [id] })
   return result.rowsAffected > 0
 }
 
@@ -479,7 +487,6 @@ export interface OverviewStats {
   totalLocations: number
   sheetsNov9: number
   sheetsNov10: number
-  draftsAwaiting: number
   needingReview: number
 }
 
@@ -514,7 +521,6 @@ export async function getOverviewStats(filters: AggregationFilters): Promise<Ove
     needingReview,
     totalPiecesCounted,
     totalItemsCounted,
-    draftsAwaiting,
   ] = await Promise.all([
     scalar(`SELECT COUNT(*) FROM inventory_sheets s WHERE ${clause}`, args),
     scalar(`SELECT COUNT(DISTINCT s.building) FROM inventory_sheets s WHERE ${clause}`, args),
@@ -532,12 +538,11 @@ export async function getOverviewStats(filters: AggregationFilters): Promise<Ove
        WHERE ${clause} AND si.quantity IS NOT NULL`,
       args,
     ),
-    scalar(`SELECT COUNT(*) FROM inventory_sheets WHERE status = 'draft'`, []),
   ])
 
   return {
     totalSubmitted, totalItemsCounted, totalPiecesCounted, totalBuildings, totalLocations,
-    sheetsNov9, sheetsNov10, draftsAwaiting, needingReview,
+    sheetsNov9, sheetsNov10, needingReview,
   }
 }
 

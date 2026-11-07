@@ -19,7 +19,7 @@ function toQuery(filters: SummaryFilters): string {
   return params.toString()
 }
 
-export function InventoryItemBreakdown({ filters }: { filters: SummaryFilters }) {
+export function InventoryItemBreakdown({ filters, refreshKey }: { filters: SummaryFilters; refreshKey?: number }) {
   const [categories, setCategories] = useState<CategoryBreakdown[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -30,7 +30,7 @@ export function InventoryItemBreakdown({ filters }: { filters: SummaryFilters })
       .then(data => setCategories(data.categories ?? []))
       .catch(() => setCategories([]))
       .finally(() => setLoading(false))
-  }, [filters])
+  }, [filters, refreshKey])
 
   if (loading) {
     return <div className="py-8 text-center text-sm text-muted-foreground">Loading item breakdown…</div>
