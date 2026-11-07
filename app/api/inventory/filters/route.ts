@@ -1,17 +1,20 @@
 import { NextResponse } from 'next/server'
-import { getDistinctBuildings, getDistinctLocationLabels, getDistinctPersonnel, getDistinctCustomItemLabels } from '@/lib/db/queries/inventory'
-import { BUILDING_OPTIONS, LINEN_OWNER_OPTIONS, LINEN_OWNER_LABELS, INVENTORY_DATES } from '@/lib/inventory/types'
+import { getDistinctBuildings, getDistinctPersonnel, getDistinctCustomItemLabels } from '@/lib/db/queries/inventory'
+import { BUILDING_OPTIONS, LOCATION_GROUPS, LINEN_OWNER_OPTIONS, LINEN_OWNER_LABELS, INVENTORY_DATES } from '@/lib/inventory/types'
 
 export const dynamic = 'force-dynamic'
 
+const LOCATION_OPTIONS = Object.values(LOCATION_GROUPS).flatMap(g => g.options)
+
 /** Bundles distinct-value lookups for the Summary filter dropdowns. Buildings/items
  * merge the fixed lists with whatever custom values have actually been entered, so
- * filters work for custom buildings/items without a redeploy. */
+ * filters work for custom buildings/items without a redeploy. Location options are a
+ * closed list (location_option is always one of LOCATION_GROUPS' values), so no
+ * distinct-value lookup is needed there. */
 export async function GET() {
   try {
-    const [buildings, locationLabels, personnel, customItems] = await Promise.all([
+    const [buildings, personnel, customItems] = await Promise.all([
       getDistinctBuildings(),
-      getDistinctLocationLabels(),
       getDistinctPersonnel(),
       getDistinctCustomItemLabels(),
     ])
@@ -19,7 +22,7 @@ export async function GET() {
 
     return NextResponse.json({
       buildings: allBuildings,
-      locationLabels,
+      locationOptions: LOCATION_OPTIONS,
       personnel,
       customItems,
       owners: LINEN_OWNER_OPTIONS.map(value => ({ value, label: LINEN_OWNER_LABELS[value] })),

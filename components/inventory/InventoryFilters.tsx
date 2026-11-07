@@ -16,7 +16,7 @@ interface FilterOptions {
   buildings: string[]
   owners: { value: string; label: string }[]
   personnel: string[]
-  locationLabels: string[]
+  locationOptions: string[]
   dates: { value: string; label: string }[]
 }
 
@@ -26,7 +26,7 @@ interface InventoryFiltersProps {
 }
 
 export function InventoryFilters({ filters, onChange }: InventoryFiltersProps) {
-  const [options, setOptions] = useState<FilterOptions>({ buildings: [], owners: [], personnel: [], locationLabels: [], dates: [] })
+  const [options, setOptions] = useState<FilterOptions>({ buildings: [], owners: [], personnel: [], locationOptions: [], dates: [] })
 
   useEffect(() => {
     fetch('/api/inventory/filters')
@@ -35,7 +35,7 @@ export function InventoryFilters({ filters, onChange }: InventoryFiltersProps) {
         buildings: data.buildings ?? [],
         owners: data.owners ?? [],
         personnel: data.personnel ?? [],
-        locationLabels: data.locationLabels ?? [],
+        locationOptions: data.locationOptions ?? [],
         dates: data.dates ?? [],
       }))
       .catch(() => {})
@@ -60,7 +60,7 @@ export function InventoryFilters({ filters, onChange }: InventoryFiltersProps) {
         <Label>Area</Label>
         <MultiSelect
           label="Areas"
-          options={options.locationLabels.map(l => ({ value: l, label: l }))}
+          options={options.locationOptions.map(l => ({ value: l, label: l }))}
           selected={filters.places}
           onChange={v => set('places', v)}
         />

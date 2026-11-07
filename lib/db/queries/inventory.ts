@@ -468,7 +468,7 @@ async function getRecountAttemptsSubmittedOnly(sheetId: number): Promise<Invento
 interface AggregationFilters {
   inventory_date?: string
   building?: string | string[]
-  location_label?: string | string[]
+  location_option?: string | string[]
   linen_owner?: string | string[]
   personnel?: string | string[]
 }
@@ -478,7 +478,7 @@ function buildAggregationWhere(filters: AggregationFilters, alias: string): { cl
   const args: string[] = []
   if (filters.inventory_date) { clauses.push(`${alias}.inventory_date = ?`); args.push(filters.inventory_date) }
   addInClause(clauses, args, `${alias}.building`, filters.building)
-  addInClause(clauses, args, `${alias}.location_label`, filters.location_label)
+  addInClause(clauses, args, `${alias}.location_option`, filters.location_option)
   addInClause(clauses, args, `${alias}.linen_owner`, filters.linen_owner)
   addInClause(clauses, args, `${alias}.personnel_name`, filters.personnel)
   return { clause: clauses.join(' AND '), args }
@@ -619,7 +619,7 @@ export async function listSummaryRecords(
   baseArgs.push(...statuses)
   if (filters.inventory_date) { clauses.push('s.inventory_date = ?'); baseArgs.push(filters.inventory_date) }
   addInClause(clauses, baseArgs, 's.building', filters.building)
-  addInClause(clauses, baseArgs, 's.location_label', filters.location_label)
+  addInClause(clauses, baseArgs, 's.location_option', filters.location_option)
   addInClause(clauses, baseArgs, 's.linen_owner', filters.linen_owner)
   addInClause(clauses, baseArgs, 's.personnel_name', filters.personnel)
   if (filters.needs_review) { clauses.push('s.needs_review = 1') }
@@ -654,15 +654,6 @@ export async function getDistinctBuildings(): Promise<string[]> {
     args: [],
   })
   return rows.map(r => String((r as Record<string, unknown>).building))
-}
-
-export async function getDistinctLocationLabels(): Promise<string[]> {
-  const db = await getDb()
-  const { rows } = await db.execute({
-    sql: `SELECT DISTINCT location_label AS location_label FROM inventory_sheets WHERE location_label <> '' ORDER BY location_label ASC`,
-    args: [],
-  })
-  return rows.map(r => String((r as Record<string, unknown>).location_label))
 }
 
 export async function getDistinctPersonnel(): Promise<string[]> {

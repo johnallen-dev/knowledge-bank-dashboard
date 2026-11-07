@@ -203,6 +203,7 @@ export interface SheetFilters {
   inventory_date?: InventoryDateKey
   building?: string | string[]
   location_label?: string | string[]
+  location_option?: string | string[]
   linen_owner?: LinenOwner | LinenOwner[]
   personnel?: string | string[]
   needs_review?: boolean

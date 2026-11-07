@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     const rows = await getItemBreakdown({
       inventory_date: searchParams.get('inventory_date') ?? undefined,
       building: searchParams.get('building')?.split(',').filter(Boolean) ?? undefined,
-      location_label: searchParams.get('location_label')?.split(',').filter(Boolean) ?? undefined,
+      location_option: searchParams.get('location_option')?.split(',').filter(Boolean) ?? undefined,
       linen_owner: searchParams.get('linen_owner')?.split(',').filter(Boolean) ?? undefined,
       personnel: searchParams.get('personnel')?.split(',').filter(Boolean) ?? undefined,
     })

@@ -17,7 +17,7 @@ function toQuery(filters: SummaryFilters, page: number, limit: number): string {
   if (filters.buildings.length) params.set('building', filters.buildings.join(','))
   if (filters.owners.length) params.set('linen_owner', filters.owners.join(','))
   if (filters.personnel.length) params.set('personnel', filters.personnel.join(','))
-  if (filters.places.length) params.set('location_label', filters.places.join(','))
+  if (filters.places.length) params.set('location_option', filters.places.join(','))
   if (filters.inventory_date) params.set('inventory_date', filters.inventory_date)
   params.set('page', String(page))
   params.set('limit', String(limit))
