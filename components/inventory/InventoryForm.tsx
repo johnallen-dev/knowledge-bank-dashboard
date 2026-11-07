@@ -347,7 +347,7 @@ export function InventoryForm() {
         option={form.location_option}
         label={form.location_label}
         onChangeCategory={(c: LocationCategory) => { set('location_category', c); set('location_option', '') }}
-        onChangeOption={opt => set('location_option', opt)}
+        onChangeOption={opt => { set('location_option', opt); set('location_label', opt === 'Somewhere else' ? '' : opt) }}
         onChangeLabel={label => set('location_label', label)}
       />
 

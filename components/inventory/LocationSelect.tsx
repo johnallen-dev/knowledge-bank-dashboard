@@ -59,15 +59,17 @@ export function LocationSelect({ category, option, label, onChangeCategory, onCh
         </div>
       )}
 
-      <div className="space-y-2">
-        <Label htmlFor="location_label">Name this place (always) *</Label>
-        <Input
-          id="location_label"
-          value={label}
-          onChange={e => onChangeLabel(e.target.value)}
-          placeholder='e.g. "Storeroom, 2nd floor"'
-        />
-      </div>
+      {option === 'Somewhere else' && (
+        <div className="space-y-2">
+          <Label htmlFor="location_label">Name this place *</Label>
+          <Input
+            id="location_label"
+            value={label}
+            onChange={e => onChangeLabel(e.target.value)}
+            placeholder='e.g. "Storeroom, 2nd floor"'
+          />
+        </div>
+      )}
     </div>
   )
 }

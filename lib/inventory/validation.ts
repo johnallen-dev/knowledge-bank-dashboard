@@ -35,7 +35,9 @@ export function validateLocationField(input: {
     return 'A valid location option must be selected.'
   }
   if (!String(location_label ?? '').trim()) {
-    return 'Please name this place (e.g. "Storeroom, 2nd floor").'
+    return location_option === 'Somewhere else'
+      ? 'Please name this place (e.g. "Storeroom, 2nd floor").'
+      : 'A valid location option must be selected.'
   }
   return null
 }
