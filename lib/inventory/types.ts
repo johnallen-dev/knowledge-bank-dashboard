@@ -36,7 +36,7 @@ export const INVENTORY_DATES: { value: InventoryDateKey; label: string }[] = [
 
 export const LOCATION_GROUPS: Record<LocationCategory, { label: string; options: string[] }> = {
   hotel_storeroom: {
-    label: 'At a Hotel or Storeroom',
+    label: 'At a Hotel',
     options: ['Storeroom', 'Corridor cupboard or open shelf', 'Trolley or cart', 'Somewhere else'],
   },
   laundry: {
