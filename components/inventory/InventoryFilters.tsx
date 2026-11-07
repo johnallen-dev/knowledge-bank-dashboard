@@ -52,11 +52,11 @@ export function InventoryFilters({ filters, onChange }: InventoryFiltersProps) {
         />
       </div>
       <div className="space-y-2">
-        <Label>Place</Label>
+        <Label>Area</Label>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search location…"
+            placeholder="Search area…"
             value={filters.place}
             onChange={e => set('place', e.target.value)}
             className="pl-9"
