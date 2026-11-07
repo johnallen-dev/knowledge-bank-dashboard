@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
       status: statusParam ? (statusParam.split(',') as SheetStatus[]) : undefined,
       inventory_date: searchParams.get('inventory_date') as never ?? undefined,
       building: searchParams.get('building')?.split(',').filter(Boolean) ?? undefined,
-      location_label: searchParams.get('location_label') ?? undefined,
+      location_label: searchParams.get('location_label')?.split(',').filter(Boolean) ?? undefined,
       linen_owner: searchParams.get('linen_owner')?.split(',').filter(Boolean) as never ?? undefined,
       personnel: searchParams.get('personnel')?.split(',').filter(Boolean) ?? undefined,
       needs_review: searchParams.get('needs_review') === 'true' ? true : undefined,

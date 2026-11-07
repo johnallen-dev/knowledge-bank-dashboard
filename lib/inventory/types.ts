@@ -202,7 +202,7 @@ export interface SheetFilters {
   status?: SheetStatus | SheetStatus[]
   inventory_date?: InventoryDateKey
   building?: string | string[]
-  location_label?: string
+  location_label?: string | string[]
   linen_owner?: LinenOwner | LinenOwner[]
   personnel?: string | string[]
   needs_review?: boolean

@@ -6,7 +6,7 @@ import { InventoryItemBreakdown } from './InventoryItemBreakdown'
 import { InventoryRecordsTable } from './InventoryRecordsTable'
 import type { SummaryFilters } from './InventoryFilters'
 
-const EMPTY_FILTERS: SummaryFilters = { buildings: [], owners: [], personnel: [], place: '', inventory_date: '' }
+const EMPTY_FILTERS: SummaryFilters = { buildings: [], owners: [], personnel: [], places: [], inventory_date: '' }
 
 export function InventorySummary() {
   const [filters, setFilters] = useState<SummaryFilters>(EMPTY_FILTERS)

@@ -1,16 +1,14 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Search } from 'lucide-react'
 import { MultiSelect } from './MultiSelect'
 
 export interface SummaryFilters {
   buildings: string[]
   owners: string[]
   personnel: string[]
-  place: string
+  places: string[]
   inventory_date: string
 }
 
@@ -18,6 +16,7 @@ interface FilterOptions {
   buildings: string[]
   owners: { value: string; label: string }[]
   personnel: string[]
+  locationLabels: string[]
   dates: { value: string; label: string }[]
 }
 
@@ -27,12 +26,18 @@ interface InventoryFiltersProps {
 }
 
 export function InventoryFilters({ filters, onChange }: InventoryFiltersProps) {
-  const [options, setOptions] = useState<FilterOptions>({ buildings: [], owners: [], personnel: [], dates: [] })
+  const [options, setOptions] = useState<FilterOptions>({ buildings: [], owners: [], personnel: [], locationLabels: [], dates: [] })
 
   useEffect(() => {
     fetch('/api/inventory/filters')
       .then(res => res.json())
-      .then(data => setOptions({ buildings: data.buildings ?? [], owners: data.owners ?? [], personnel: data.personnel ?? [], dates: data.dates ?? [] }))
+      .then(data => setOptions({
+        buildings: data.buildings ?? [],
+        owners: data.owners ?? [],
+        personnel: data.personnel ?? [],
+        locationLabels: data.locationLabels ?? [],
+        dates: data.dates ?? [],
+      }))
       .catch(() => {})
   }, [])
 
@@ -53,15 +58,12 @@ export function InventoryFilters({ filters, onChange }: InventoryFiltersProps) {
       </div>
       <div className="space-y-2">
         <Label>Area</Label>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search area…"
-            value={filters.place}
-            onChange={e => set('place', e.target.value)}
-            className="pl-9"
-          />
-        </div>
+        <MultiSelect
+          label="Areas"
+          options={options.locationLabels.map(l => ({ value: l, label: l }))}
+          selected={filters.places}
+          onChange={v => set('places', v)}
+        />
       </div>
       <div className="space-y-2">
         <Label>Owner</Label>

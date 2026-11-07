@@ -172,7 +172,7 @@ export async function listSheets(filters: SheetFilters): Promise<{ sheets: Inven
   }
   if (filters.inventory_date) { clauses.push('inventory_date = ?'); args.push(filters.inventory_date) }
   addInClause(clauses, args, 'building', filters.building)
-  if (filters.location_label) { clauses.push('location_label = ?'); args.push(filters.location_label) }
+  addInClause(clauses, args, 'location_label', filters.location_label)
   addInClause(clauses, args, 'linen_owner', filters.linen_owner)
   addInClause(clauses, args, 'personnel_name', filters.personnel)
   if (filters.needs_review) { clauses.push('needs_review = 1') }
@@ -468,7 +468,7 @@ async function getRecountAttemptsSubmittedOnly(sheetId: number): Promise<Invento
 interface AggregationFilters {
   inventory_date?: string
   building?: string | string[]
-  location_label?: string
+  location_label?: string | string[]
   linen_owner?: string | string[]
   personnel?: string | string[]
 }
@@ -478,7 +478,7 @@ function buildAggregationWhere(filters: AggregationFilters, alias: string): { cl
   const args: string[] = []
   if (filters.inventory_date) { clauses.push(`${alias}.inventory_date = ?`); args.push(filters.inventory_date) }
   addInClause(clauses, args, `${alias}.building`, filters.building)
-  if (filters.location_label) { clauses.push(`${alias}.location_label LIKE ?`); args.push(`%${filters.location_label}%`) }
+  addInClause(clauses, args, `${alias}.location_label`, filters.location_label)
   addInClause(clauses, args, `${alias}.linen_owner`, filters.linen_owner)
   addInClause(clauses, args, `${alias}.personnel_name`, filters.personnel)
   return { clause: clauses.join(' AND '), args }
@@ -619,7 +619,7 @@ export async function listSummaryRecords(
   baseArgs.push(...statuses)
   if (filters.inventory_date) { clauses.push('s.inventory_date = ?'); baseArgs.push(filters.inventory_date) }
   addInClause(clauses, baseArgs, 's.building', filters.building)
-  if (filters.location_label) { clauses.push('s.location_label LIKE ?'); baseArgs.push(`%${filters.location_label}%`) }
+  addInClause(clauses, baseArgs, 's.location_label', filters.location_label)
   addInClause(clauses, baseArgs, 's.linen_owner', filters.linen_owner)
   addInClause(clauses, baseArgs, 's.personnel_name', filters.personnel)
   if (filters.needs_review) { clauses.push('s.needs_review = 1') }
