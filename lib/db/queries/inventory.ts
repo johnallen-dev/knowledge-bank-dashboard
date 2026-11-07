@@ -204,6 +204,11 @@ export async function listSheets(filters: SheetFilters): Promise<{ sheets: Inven
 export async function deleteSheetHard(id: number): Promise<boolean> {
   const db = await getDb()
   await db.execute({ sql: `UPDATE inventory_sheets SET original_sheet_id = NULL WHERE original_sheet_id = ?`, args: [id] })
+  // Events logged on OTHER sheets (e.g. a "superseded" event on the original, logged when
+  // this sheet was submitted as its recount) can still point at this id via related_sheet_id.
+  // Turso enforces foreign keys, so that dangling reference must be cleared before this
+  // sheet's row is deleted, or the delete fails with a foreign key constraint error.
+  await db.execute({ sql: `UPDATE inventory_sheet_events SET related_sheet_id = NULL WHERE related_sheet_id = ?`, args: [id] })
   await db.execute({ sql: `DELETE FROM inventory_sheet_events WHERE sheet_id = ?`, args: [id] })
   await db.execute({ sql: `DELETE FROM inventory_sheet_revisions WHERE sheet_id = ?`, args: [id] })
   await db.execute({ sql: `DELETE FROM inventory_sheet_items WHERE sheet_id = ?`, args: [id] })
