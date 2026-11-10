@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Send, FileEdit } from 'lucide-react'
+import { Send, FileEdit, Loader2 } from 'lucide-react'
 import { BuildingSelect } from './BuildingSelect'
 import { LocationSelect } from './LocationSelect'
 import { OwnershipSelect } from './OwnershipSelect'
@@ -111,6 +111,12 @@ export function InventoryForm() {
   const [displayStatus, setDisplayStatus] = useState<'draft' | 'submitted' | 'recounted' | 'superseded'>('draft')
   const [loading, setLoading] = useState(!!editId)
   const [submitting, setSubmitting] = useState(false)
+  // Separate from `submitting` (which covers the final confirm step): the initial
+  // click on "Submit Inventory" silently creates the draft sheet over the network
+  // before the confirm modal can open, with no visual feedback in between — on a
+  // slow connection or a cold serverless/DB round trip this reads as "the button
+  // isn't doing anything" even though it's working.
+  const [preparingSubmit, setPreparingSubmit] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [editAuthed, setEditAuthed] = useState(false)
 
@@ -185,6 +191,7 @@ export function InventoryForm() {
   async function handleSubmitClick() {
     if (submitInFlight.current) return
     submitInFlight.current = true
+    setPreparingSubmit(true)
     try {
       if (isEditingSubmitted) {
         setShowConfirm(true)
@@ -195,6 +202,7 @@ export function InventoryForm() {
       setShowConfirm(true)
     } finally {
       submitInFlight.current = false
+      setPreparingSubmit(false)
     }
   }
 
@@ -381,9 +389,15 @@ export function InventoryForm() {
       </div>
 
       <div className="flex gap-3 pt-2">
-        <Button type="button" onClick={handleSubmitClick} className="gap-2">
-          {isEditingSubmitted ? <FileEdit className="h-4 w-4" /> : <Send className="h-4 w-4" />}
-          {isEditingSubmitted ? 'Save Changes' : 'Submit Inventory'}
+        <Button type="button" onClick={handleSubmitClick} disabled={preparingSubmit} className="gap-2">
+          {preparingSubmit ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : isEditingSubmitted ? (
+            <FileEdit className="h-4 w-4" />
+          ) : (
+            <Send className="h-4 w-4" />
+          )}
+          {preparingSubmit ? 'Preparing…' : isEditingSubmitted ? 'Save Changes' : 'Submit Inventory'}
         </Button>
       </div>
     </div>
