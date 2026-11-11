@@ -56,7 +56,15 @@ export function InventorySummary() {
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Detailed Records</h3>
+        <div className="flex items-center justify-between gap-4">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Detailed Records</h3>
+          <Button asChild variant="outline" size="sm" className="gap-2 shrink-0">
+            <a href={`/api/inventory/summary/export?${exportQuery(filters)}&only=records`}>
+              <Download className="h-4 w-4" />
+              Export
+            </a>
+          </Button>
+        </div>
         <InventoryRecordsTable filters={filters} onDataChanged={handleDataChanged} />
       </div>
     </div>
