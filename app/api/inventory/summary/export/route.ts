@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {
-  getOverviewStats, getItemBreakdown, getBuildingLocationBreakdown, listSummaryRecords,
+  getOverviewStats, getItemBreakdown, getItemBreakdownByLocation, getBuildingLocationBreakdown, listSummaryRecords,
 } from '@/lib/db/queries/inventory'
 import { shapeItemBreakdown } from '@/lib/inventory/aggregation'
 import { getDisplayStatus } from '@/lib/inventory/statusLabel'
-import { LINEN_OWNER_LABELS, INVENTORY_STATUS_LABELS } from '@/lib/inventory/types'
-import type { LinenOwner } from '@/lib/inventory/types'
+import { LINEN_OWNER_LABELS, INVENTORY_STATUS_LABELS, ITEM_CATEGORY_LABELS } from '@/lib/inventory/types'
+import type { LinenOwner, ItemCategory } from '@/lib/inventory/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,9 +24,10 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const filters = parseFilters(searchParams)
 
-    const [overview, itemRows, buildingRows, records] = await Promise.all([
+    const [overview, itemRows, itemByLocationRows, buildingRows, records] = await Promise.all([
       getOverviewStats(filters),
       getItemBreakdown(filters),
+      getItemBreakdownByLocation(filters),
       getBuildingLocationBreakdown(filters),
       listSummaryRecords({ ...filters, limit: 10000, page: 1 }),
     ])
@@ -56,6 +57,23 @@ export async function GET(req: NextRequest) {
       })),
     )
     xlsx.utils.book_append_sheet(wb, xlsx.utils.json_to_sheet(itemBreakdownRows), 'Item Breakdown')
+
+    // Unlike the "Item Breakdown" sheet above (which totals each item across every
+    // property/area), this keeps each property+area+owner's item counts separate, so
+    // e.g. "Sheets 90 cm" at Arctic/Storeroom and at Arctic/Trolley show as distinct
+    // rows rather than one combined number. Only items actually counted somewhere
+    // appear — no zero-filling, since a blank item on a given sheet means "not
+    // counted" there, not "counted as zero".
+    const itemByLocationSheetRows = itemByLocationRows.map(r => ({
+      Property: r.building,
+      Area: r.location_label,
+      Owner: r.linen_owner ? LINEN_OWNER_LABELS[r.linen_owner as LinenOwner] ?? r.linen_owner : '',
+      Category: ITEM_CATEGORY_LABELS[r.category as ItemCategory] ?? r.category,
+      Item: r.item_label,
+      'Total Pieces': r.total_pieces,
+      'Sheets Counted': r.sheets_counted,
+    }))
+    xlsx.utils.book_append_sheet(wb, xlsx.utils.json_to_sheet(itemByLocationSheetRows), 'Items by Property & Area')
 
     const propertyAreaRows = buildingRows.map(r => ({
       Property: r.building,

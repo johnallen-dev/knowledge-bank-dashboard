@@ -584,6 +584,52 @@ export async function getItemBreakdown(filters: AggregationFilters): Promise<Ite
   })
 }
 
+export interface ItemByLocationRow {
+  building: string
+  location_label: string
+  linen_owner: string
+  item_key: string
+  item_label: string
+  category: string
+  total_pieces: number
+  sheets_counted: number
+}
+
+/** Same shape as getItemBreakdown, but kept separate per property+area+owner instead
+ * of collapsed across all of them — e.g. "Sheets 90 cm at Arctic/Storeroom" vs.
+ * "Sheets 90 cm at Arctic/Trolley" are different rows, not summed together. Owner is
+ * included in the grouping (not just building+location) because the app's own counting
+ * rule requires two separate sheets when one place holds linen for two owners — folding
+ * them back together here would misrepresent that as a single count. */
+export async function getItemBreakdownByLocation(filters: AggregationFilters): Promise<ItemByLocationRow[]> {
+  const db = await getDb()
+  const { clause, args } = buildAggregationWhere(filters, 's')
+  const { rows } = await db.execute({
+    sql: `SELECT s.building AS building, s.location_label AS location_label, s.linen_owner AS linen_owner,
+                 si.item_key AS item_key, MAX(si.item_label) AS item_label, si.category AS category,
+                 SUM(si.quantity) AS total_pieces, COUNT(si.quantity) AS sheets_counted
+          FROM inventory_sheet_items AS si
+          INNER JOIN inventory_sheets AS s ON s.id = si.sheet_id
+          WHERE si.quantity IS NOT NULL AND ${clause}
+          GROUP BY s.building, s.location_label, s.linen_owner, si.item_key, si.category
+          ORDER BY s.building ASC, s.location_label ASC, si.category ASC, si.item_key ASC`,
+    args: [...args],
+  })
+  return rows.map(r => {
+    const row = r as Record<string, unknown>
+    return {
+      building: String(row.building),
+      location_label: String(row.location_label),
+      linen_owner: String(row.linen_owner),
+      item_key: String(row.item_key),
+      item_label: String(row.item_label),
+      category: String(row.category),
+      total_pieces: Number(row.total_pieces ?? 0),
+      sheets_counted: Number(row.sheets_counted ?? 0),
+    }
+  })
+}
+
 export async function getBuildingLocationBreakdown(filters: AggregationFilters): Promise<
   { building: string; location_label: string; linen_owner: string; sheet_count: number; total_pieces: number }[]
 > {
